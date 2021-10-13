@@ -41,15 +41,15 @@ public class Cell {
 //                .collect(Collectors.toList());
 //        System.out.println(row.get(0));
 
-        Table table = new Table();
-        table.setCell(0, 0, "1"); //A1
-        table.setCell(1, 0, "=2"); //B1
-        table.setCell(0, 1, "=A1+B1"); //A2
-        table.setCell(1, 1, "=SUM(A1:A2;B1)"); //B2
-        System.out.println("A1: " + table.getCell(0, 0).getEvaluation());
-        System.out.println("B1: " +  table.getCell(1, 0).getEvaluation());
-        System.out.println("A2: " +  table.getCell(0, 1).getEvaluation());
-        System.out.println("B2: " +  table.getCell(1, 1).getEvaluation());
+//        Table table = new Table();
+//        table.setCell(0, 0, "1"); //A1
+//        table.setCell(1, 0, "=2"); //B1
+//        table.setCell(0, 1, "=A1+B1"); //A2
+//        table.setCell(1, 1, "=SUM(A1:A2;B1)"); //B2
+//        System.out.println("A1: " + table.getCell(0, 0).getEvaluation());
+//        System.out.println("B1: " +  table.getCell(1, 0).getEvaluation());
+//        System.out.println("A2: " +  table.getCell(0, 1).getEvaluation());
+//        System.out.println("B2: " +  table.getCell(1, 1).getEvaluation());
 //        table.setCell(1, 0, "=B1"); //B1
 //        System.out.println("A1: " + table.getCell(0, 0).getEvaluation());
 //        System.out.println("B1: " +  table.getCell(1, 0).getEvaluation());
