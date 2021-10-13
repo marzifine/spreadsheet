@@ -77,6 +77,11 @@ public class Application {
                 int columns = table.getColumnCount();
                 for (int i = 0; i < row; i++) {
                     for (int j = 0; j < columns; j++) {
+                        if (i == table.getSelectedRow() && j == table.getSelectedColumn()) {
+                            System.out.println("INFO");
+                            table.setValueAt(spreadsheet.getCell(i, j).getInfo(), i, j);
+                            continue;
+                        }
                         data = spreadsheet.getCell(i, j).getEvaluation();
                         table.setValueAt(data, i, j);
                     }
@@ -93,12 +98,16 @@ public class Application {
 //                        e.getColumn();
 
                 String data = (String)table.getValueAt(x, y);
-//                System.out.println(spreadsheet.getEvaluations()[x][y]);
+                System.out.println("1 " + data);
+                System.out.println("2 " + spreadsheet.getCell(x, y).getInfo());
                 if (spreadsheet.getCell(x, y).getInfo().matches("(.*)(([A-Z]+)(\\d+))(.*)")) {
-                    if (!data.equals(spreadsheet.getCell(x, y).getEvaluation())) {
+                    if (!data.equals(spreadsheet.getCell(x, y).getInfo()) && !data.equals(spreadsheet.getCell(x, y).getEvaluation())) {
+//                        System.out.println(data);
+//                        System.out.println(spreadsheet.getCell(x, y).getInfo());
                         spreadsheet.setCell(x, y, data);
                     }
-
+//                    if (data.matches("(.*)(([A-Z]+)(\\d+))(.*)") && data.equals(spreadsheet.getCell(x, y).getInfo())) {}
+//                    else table.setValueAt(spreadsheet.getCell(x, y).getInfo(), x, y);
                 } else {
                     spreadsheet.setCell(x, y, data);
                 }
