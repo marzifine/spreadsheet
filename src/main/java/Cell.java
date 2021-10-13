@@ -44,44 +44,6 @@ public class Cell {
         avg = false;
     }
 
-    public static void main(String[] args) {
-//        String pattern = "(([A-Z]+)(\\d+))";
-//        System.out.print(Arrays.toString("A12+b30".split(pattern)));
-//        System.out.println("AA".matches(pattern));
-//        System.out.println("A2".matches(pattern));
-//        System.out.println("AB33".matches(pattern));
-//        System.out.println("11".matches(pattern));
-//        List row = Pattern.compile("([A-Z]+)")
-//                .matcher("AA345")
-//                .results()
-//                .map(MatchResult::group)
-//                .collect(Collectors.toList());
-//        System.out.println(row.get(0));
-
-//        Table table = new Table();
-//        table.setCell(0, 0, "1"); //A1
-//        table.setCell(1, 0, "=2"); //B1
-//        table.setCell(0, 1, "=A1+B1"); //A2
-//        table.setCell(1, 1, "=SUM(A1:A2;B1)"); //B2
-//        System.out.println("A1: " + table.getCell(0, 0).getEvaluation());
-//        System.out.println("B1: " +  table.getCell(1, 0).getEvaluation());
-//        System.out.println("A2: " +  table.getCell(0, 1).getEvaluation());
-//        System.out.println("B2: " +  table.getCell(1, 1).getEvaluation());
-//        table.setCell(1, 0, "=B1"); //B1
-//        System.out.println("A1: " + table.getCell(0, 0).getEvaluation());
-//        System.out.println("B1: " +  table.getCell(1, 0).getEvaluation());
-//        System.out.println("A2: " +  table.getCell(0, 1).getEvaluation());
-//        System.out.println("B2: " +  table.getCell(1, 1).getEvaluation());
-
-//        System.out.println(table.getReferences().entrySet());
-//        for (Map.Entry<Cell, Set<Cell>> entry : table.getReferences().entrySet()) {
-//            System.out.println(entry.getKey().x + " " + entry.getKey().y);
-//            for (Cell cell : entry.getValue()) {
-//                System.out.println(cell.getInfo());
-//            }
-//        }
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -163,17 +125,21 @@ public class Cell {
         if (avg) {
             result = result / evaluations.size();
         }
-        if (Math.round(result) == result) {
+        if ((result % 1) == 0)
             temp = String.valueOf((int)result);
-        } else temp = String.valueOf(result);
+        else temp = String.valueOf(result);
     }
 
     //handle math equation
     private void handleExpression() {
             if (temp.equals("#Ref!") || temp.equals("#Val!"))
                 return;
-            else
-                temp = String.valueOf((int)Calculator.eval(temp));
+            else {
+                double result = Calculator.eval(temp);
+                if ((result % 1) == 0)
+                    temp = String.valueOf((int)result);
+                else temp = String.valueOf(result);
+            }
     }
 
     private String[] parseRef() {
