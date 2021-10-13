@@ -11,6 +11,23 @@ public class Cell {
     private String evaluation;
     private String temp;
     private Table spreadsheet;
+
+    public int getX() {
+        return x;
+    }
+
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public void setY(int y) {
+        this.y = y;
+    }
+
     private int x;
     private int y;
     private boolean sum;
@@ -81,7 +98,7 @@ public class Cell {
         this.spreadsheet = spreadsheet;
     }
 
-    private void handleInfo() {
+    public void handleInfo() {
         temp = info;
         //handle math expression
         if (info.startsWith("=") || info.startsWith(" =")) {
@@ -153,7 +170,7 @@ public class Cell {
 
     //handle math equation
     private void handleExpression() {
-            if (temp.equals("#Ref!"))
+            if (temp.equals("#Ref!") || temp.equals("#Val!"))
                 return;
             else
                 temp = String.valueOf((int)Calculator.eval(temp));
@@ -192,6 +209,16 @@ public class Cell {
     }
 
     private int getX(String location) {
+        String row = Pattern.compile("(\\d+)")
+                .matcher(location)
+                .results()
+                .map(MatchResult::group)
+                .collect(Collectors.toList())
+                .get(0);
+        return Integer.parseInt(row) - 1;
+    }
+
+    private int getY(String location) {
         String column = Pattern.compile("([A-Z]+)")
                 .matcher(location)
                 .results()
@@ -207,16 +234,6 @@ public class Cell {
         return columnIndex;
     }
 
-    private int getY(String location) {
-        String row = Pattern.compile("(\\d+)")
-                .matcher(location)
-                .results()
-                .map(MatchResult::group)
-                .collect(Collectors.toList())
-                .get(0);
-        return Integer.parseInt(row) - 1;
-    }
-
     //consists of letters at the beginning and digits at the end
     private void handleRef() {
         String[] matches = parseRef();
@@ -230,6 +247,10 @@ public class Cell {
 
         //replace every reference with its numeric value
         for (int i = 0; i < matches.length; i++) {
+            if (converted[i].matches("([A-Z]+)")) {
+                temp = "#Val!";
+                break;
+            }
             if (converted[i].equals("#Ref!")) {
                 temp = "#Ref!";
                 break;
