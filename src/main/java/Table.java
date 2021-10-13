@@ -4,6 +4,7 @@ public class Table {
     private int rows;
     private int columns;
     private Cell[][] spreadsheet;
+    private String[][] evaluations;
     private Map<Cell, Set<Cell>> references;
 
     public Map<Cell, Set<Cell>> getReferences() {
@@ -14,10 +15,19 @@ public class Table {
         this.references = references;
     }
 
+    public String[][] getEvaluations() {
+        return evaluations;
+    }
+
+    public void setEvaluations(String[][] evaluations) {
+        this.evaluations = evaluations;
+    }
+
     public Table() {
         rows = 5;
         columns = 5;
         spreadsheet = new Cell[rows][columns];
+        evaluations = new String[rows][columns];
         for (int i = 0; i < rows; i++)
             for (int j = 0; j < columns; j++)
                 spreadsheet[i][j] = new Cell(this, i, j);
@@ -51,6 +61,7 @@ public class Table {
 
     public void setCell(int x, int y, String input) {
         spreadsheet[x][y].setInfo(input.toUpperCase());
+        evaluations[x][y] = spreadsheet[x][y].getEvaluation();
     }
 
     public Cell getCell(int x, int y) {
