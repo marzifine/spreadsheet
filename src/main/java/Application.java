@@ -4,6 +4,12 @@ import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 public class Application {
     /**
@@ -17,7 +23,19 @@ public class Application {
 
         //Create and set up the window.
         JFrame frame = new JFrame("Shmexel Spreadsheet");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+//        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setIconImage(new ImageIcon("spreadsheet.png").getImage());
+        frame.addWindowListener(new WindowAdapter(){
+            public void windowClosing(WindowEvent e){
+                int i = JOptionPane.showConfirmDialog(null, "Are you sure you want to exit?");
+                if(i == JOptionPane.YES_OPTION){
+                    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                }
+            }
+        });
+
+//        JOptionPane.showMessageDialog(frame,"Hello, Welcome to Javatpoint.");
 
         //Name the columns
         Table spreadsheet = new Table();
@@ -31,33 +49,33 @@ public class Application {
         //Create a table with named columns
         JTable table = new JTable(spreadsheet.getEvaluations(), columns);
         table.setBounds(30,40,300,400);
+        table.setSelectionBackground(Color.blue);
         //Create a container
         JScrollPane sp = new JScrollPane(table);
         frame.add(sp, BorderLayout.NORTH);
         frame.setSize(300,400);
 
         //Create timer
-        Timer t = new Timer(10, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                //TODO:refresh data
-                String data = "";
-                int row = table.getRowCount();
-                int columns = table.getColumnCount();
-                for (int i = 0; i < row; i++) {
-                    for (int j = 0; j < columns; j++) {
-                        if (i == table.getSelectedRow() && j == table.getSelectedColumn()) {
-                            table.setValueAt(spreadsheet.getCell(i, j).getInfo(), i, j);
-                            continue;
-                        }
-                        data = spreadsheet.getCell(i, j).getEvaluation();
-                        System.out.println("EVAL " + data);
-                        table.setValueAt(data, i, j);
-                    }
-                }
-            }
-        });
-        t.start();
+//        Timer t = new Timer(10, new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                String data = "";
+//                int row = table.getRowCount();
+//                int columns = table.getColumnCount();
+//                for (int i = 0; i < row; i++) {
+//                    for (int j = 0; j < columns; j++) {
+//                        if (i == table.getSelectedRow() && j == table.getSelectedColumn()) {
+//                            table.setValueAt(spreadsheet.getCell(i, j).getInfo(), i, j);
+//                            continue;
+//                        }
+//                        data = spreadsheet.getCell(i, j).getEvaluation();
+//                        System.out.println("EVAL " + data);
+//                        table.setValueAt(data, i, j);
+//                    }
+//                }
+//            }
+//        });
+//        t.start();
 
         //Show grid lines
         table.setShowGrid(true);
@@ -81,7 +99,6 @@ public class Application {
                             continue;
                         }
                         data = spreadsheet.getCell(i, j).getEvaluation();
-                        System.out.println("EVAL " + data);
                         table.setValueAt(data, i, j);
                     }
                 }
@@ -91,26 +108,16 @@ public class Application {
         TableModelListener tl = new TableModelListener() {
             @Override
             public void tableChanged(TableModelEvent e) {
-                System.out.println("CHANGED TABLE");
                 int x = table.getSelectedRow();
-//                        e.getFirstRow();
                 int y = table.getSelectedColumn();
-//                        e.getColumn();
 
                 String data = (String)table.getValueAt(x, y);
-                System.out.println("1 " + data);
-                System.out.println("2 " + spreadsheet.getCell(x, y).getInfo());
                 if (spreadsheet.getCell(x, y).getInfo().matches("(.*)(([A-Z]+)(\\d+))(.*)")) {
                     if (!data.equals(spreadsheet.getCell(x, y).getInfo()) && !data.equals(spreadsheet.getCell(x, y).getEvaluation())) {
-//                        System.out.println(data);
-//                        System.out.println(spreadsheet.getCell(x, y).getInfo());
                         spreadsheet.setCell(x, y, data);
                     }
-                    System.out.println("NOT SET A CELL");
-//                    if (data.matches("(.*)(([A-Z]+)(\\d+))(.*)") && data.equals(spreadsheet.getCell(x, y).getInfo())) {}
-//                    else table.setValueAt(spreadsheet.getCell(x, y).getInfo(), x, y);
                 } else {
-                    System.out.println("SET CELL : " + x + " " + y + " : " + data);
+//                    System.out.println("SET CELL : " + x + " " + y + " : " + data);
                     spreadsheet.setCell(x, y, data);
                     System.out.println(spreadsheet.getCell(x, y).getEvaluation());
                 }
@@ -121,16 +128,15 @@ public class Application {
 
         //TODO: handle save/load file
 
-        JButton button = new JButton("input");
-        JTextField text = new JTextField(20);
-        button.addActionListener(new ActionListener(){
+        JButton button = new JButton("save");
+        JTextField text = new JTextField("Enter the file name: ", 20);
+        button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String value = text.getText();
-                System.out.println(value);
-                table.setValueAt(value, table.getSelectedRow(), table.getSelectedColumn());
-                spreadsheet.setCell(table.getSelectedRow(), table.getSelectedColumn(), value);
-                System.out.println("NEW CELL " + spreadsheet.getCell(table.getSelectedRow(), table.getSelectedColumn()).getEvaluation());
-//                spreadsheet.setCell(table.getSelectedRow(), table.getSelectedColumn(), value);
+                value = value.substring(value.indexOf(":") + 2);
+                //save file
+                if(save(table, spreadsheet, value))
+                    JOptionPane.showMessageDialog(frame,"Your file has been successfully saved to " + value+ ".shm" + " .");
             }
         });
 
@@ -142,18 +148,33 @@ public class Application {
         frame.setVisible(true);
     }
 
-//    private static void update(JTable table, Table spreadsheet) {
-//        int[] row = table.getSelectedRows();
-//        int[] columns = table.getSelectedColumns();
-//        for (int i = 0; i < row.length; i++) {
-//            for (int j = 0; j < columns.length; j++) {
-//                int x = row[i];
-//                int y = columns[j];
-//                String data = spreadsheet.getCell(x, y).getInfo();
-//                table.setValueAt(data, x, y);
-//            }
-//        }
-//    }
+    private static boolean save(JTable table, Table spreadsheet, String name) {
+        name = name + ".shm";
+        int columns = table.getColumnCount();
+        try {
+            FileWriter fw = new FileWriter(name);
+            PrintWriter printWriter = new PrintWriter(fw);
+            //write column headers
+            for (int i = 0; i < columns; i++) {
+                printWriter.print(table.getModel().getColumnName(i) + " ");
+            }
+            printWriter.print(System.lineSeparator());
+            printWriter.print("rows=" + spreadsheet.getRows() + " columns=" + spreadsheet.getColumns());
+            printWriter.print(System.lineSeparator());
+            for (int i = 0; i < spreadsheet.getRows(); i++) {
+                for (int j = 0; j < spreadsheet.getColumns(); j++) {
+                    printWriter.print(spreadsheet.getCell(i, j).getInfo() + " ");
+                }
+                printWriter.print(System.lineSeparator());
+            }
+            printWriter.close();
+            fw.close();
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 
     public static void main(String[] args) {
         //Schedule a job for the event-dispatching thread:
