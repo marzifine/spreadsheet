@@ -36,27 +36,28 @@ public class Application {
         frame.add(sp, BorderLayout.NORTH);
         frame.setSize(300,400);
 
-        JButton button = new JButton("Save");
-        JTextField text = new JTextField(20);
-        button.addActionListener(new ActionListener(){
-            public void actionPerformed(ActionEvent e) {
-                String value = text.getText();
-                //TODO: handle save file
-            }
-        });
-
         //Create timer
-        Timer t = new Timer(300, new ActionListener() {
-
+        Timer t = new Timer(10, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 //TODO:refresh data
+                String data = "";
+                int row = table.getRowCount();
+                int columns = table.getColumnCount();
+                for (int i = 0; i < row; i++) {
+                    for (int j = 0; j < columns; j++) {
+                        if (i == table.getSelectedRow() && j == table.getSelectedColumn()) {
+                            table.setValueAt(spreadsheet.getCell(i, j).getInfo(), i, j);
+                            continue;
+                        }
+                        data = spreadsheet.getCell(i, j).getEvaluation();
+                        System.out.println("EVAL " + data);
+                        table.setValueAt(data, i, j);
+                    }
+                }
             }
         });
         t.start();
-
-        frame.add(text, BorderLayout.CENTER);
-        frame.add(button, BorderLayout.SOUTH);
 
         //Show grid lines
         table.setShowGrid(true);
@@ -71,18 +72,16 @@ public class Application {
         select.addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent e) {
                 String data = "";
-//                int[] row = table.getSelectedRows();
-//                int[] columns = table.getSelectedColumns();
                 int row = table.getRowCount();
                 int columns = table.getColumnCount();
                 for (int i = 0; i < row; i++) {
                     for (int j = 0; j < columns; j++) {
                         if (i == table.getSelectedRow() && j == table.getSelectedColumn()) {
-                            System.out.println("INFO");
                             table.setValueAt(spreadsheet.getCell(i, j).getInfo(), i, j);
                             continue;
                         }
                         data = spreadsheet.getCell(i, j).getEvaluation();
+                        System.out.println("EVAL " + data);
                         table.setValueAt(data, i, j);
                     }
                 }
@@ -92,6 +91,7 @@ public class Application {
         TableModelListener tl = new TableModelListener() {
             @Override
             public void tableChanged(TableModelEvent e) {
+                System.out.println("CHANGED TABLE");
                 int x = table.getSelectedRow();
 //                        e.getFirstRow();
                 int y = table.getSelectedColumn();
@@ -106,15 +106,36 @@ public class Application {
 //                        System.out.println(spreadsheet.getCell(x, y).getInfo());
                         spreadsheet.setCell(x, y, data);
                     }
+                    System.out.println("NOT SET A CELL");
 //                    if (data.matches("(.*)(([A-Z]+)(\\d+))(.*)") && data.equals(spreadsheet.getCell(x, y).getInfo())) {}
 //                    else table.setValueAt(spreadsheet.getCell(x, y).getInfo(), x, y);
                 } else {
+                    System.out.println("SET CELL : " + x + " " + y + " : " + data);
                     spreadsheet.setCell(x, y, data);
+                    System.out.println(spreadsheet.getCell(x, y).getEvaluation());
                 }
             }
         };
 
         table.getModel().addTableModelListener(tl);
+
+        //TODO: handle save/load file
+
+        JButton button = new JButton("input");
+        JTextField text = new JTextField(20);
+        button.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e) {
+                String value = text.getText();
+                System.out.println(value);
+                table.setValueAt(value, table.getSelectedRow(), table.getSelectedColumn());
+                spreadsheet.setCell(table.getSelectedRow(), table.getSelectedColumn(), value);
+                System.out.println("NEW CELL " + spreadsheet.getCell(table.getSelectedRow(), table.getSelectedColumn()).getEvaluation());
+//                spreadsheet.setCell(table.getSelectedRow(), table.getSelectedColumn(), value);
+            }
+        });
+
+        frame.add(text, BorderLayout.CENTER);
+        frame.add(button, BorderLayout.SOUTH);
 
         //Display the window.
         frame.pack();
