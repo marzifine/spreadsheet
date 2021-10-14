@@ -11,6 +11,21 @@ public class Cell {
     private String evaluation;
     private String temp;
     private Table spreadsheet;
+    private int x;
+    private int y;
+    private boolean sum;
+    private boolean avg;
+
+    public Cell(Table spreadsheet, int x, int y) {
+        info = null;
+        evaluation = null;
+        temp = null;
+        this.spreadsheet = spreadsheet;
+        this.x = x;
+        this.y = y;
+        sum = false;
+        avg = false;
+    }
 
     public int getX() {
         return x;
@@ -26,22 +41,6 @@ public class Cell {
 
     public void setY(int y) {
         this.y = y;
-    }
-
-    private int x;
-    private int y;
-    private boolean sum;
-    private boolean avg;
-
-    public Cell(Table spreadsheet, int x, int y) {
-        info = null;
-        evaluation = null;
-        temp = null;
-        this.spreadsheet = spreadsheet;
-        this.x = x;
-        this.y = y;
-        sum = false;
-        avg = false;
     }
 
     @Override
@@ -126,20 +125,20 @@ public class Cell {
             result = result / evaluations.size();
         }
         if ((result % 1) == 0)
-            temp = String.valueOf((int)result);
+            temp = String.valueOf((int) result);
         else temp = String.valueOf(result);
     }
 
     //handle math equation
     private void handleExpression() {
-            if (temp.equals("#Ref!") || temp.equals("#Val!"))
-                return;
-            else {
-                double result = Calculator.eval(temp);
-                if ((result % 1) == 0)
-                    temp = String.valueOf((int)result);
-                else temp = String.valueOf(result);
-            }
+        if (temp.equals("#Ref!") || temp.equals("#Val!"))
+            return;
+        else {
+            double result = Calculator.eval(temp);
+            if ((result % 1) == 0)
+                temp = String.valueOf((int) result);
+            else temp = String.valueOf(result);
+        }
     }
 
     private String[] parseRef() {
@@ -152,8 +151,8 @@ public class Cell {
         for (String match : matches) {
             int x = getX(match);
             int y = getY(match);
-            if (!(sum || avg))
-                addReferences(spreadsheet.getCell(x, y));
+            if (sum || avg) {}
+            else addReferences(spreadsheet.getCell(x, y));
         }
         return matches;
     }
