@@ -38,6 +38,7 @@ public class Table {
         this.rows = rows;
         this.columns = columns;
         spreadsheet = new Cell[rows][columns];
+        evaluations = new String[rows][columns];
         for (int i = 0; i < rows; i++)
             for (int j = 0; j < columns; j++)
                 spreadsheet[i][j] = new Cell(this, i, j);
