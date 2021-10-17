@@ -121,6 +121,7 @@ public class Application {
         //Set row number header
         JList rowHeader = new JList(rows);
         rowHeader.setFixedCellWidth(30);
+        rowHeader.setFixedCellHeight(table.getRowHeight());
         rowHeader.setCellRenderer(new RowHeaderRenderer(table));
         sp.setRowHeaderView(rowHeader);
 
@@ -236,10 +237,12 @@ public class Application {
                 String[] rowInfo = strings.get(i).split(" ");
                 for (int j = 0; j < columns; j++) {
                     infos[i-1][j] = rowInfo[j];
+                    if (rowInfo[j].equals("#")) break;
                 }
             }
             for (int i = 0; i < rows; i++) {
                 for (int j = 0; j < columns; j++) {
+                    if (infos[i][j].equals("#")) break;
                     if (infos[i][j].equals("-")) continue;
                     spreadsheet.setCell(i, j, infos[i][j]);
                 }
@@ -266,19 +269,11 @@ public class Application {
         try {
             FileWriter fw = new FileWriter(path);
             PrintWriter printWriter = new PrintWriter(fw);
-            //write how many rows and columns in table
-            printWriter.print("rows=" + spreadsheet.getRows() + " columns=" + spreadsheet.getColumns());
-            printWriter.print(System.lineSeparator());
-//            String[][] infos = new String[spreadsheet.getRows()][spreadsheet.getColumns()];
-//            for (int i = 0; i < spreadsheet.getRows(); i++) {
-//                for (int j = 0; j < spreadsheet.getColumns(); j++) {
-//                    if (spreadsheet.getCell(i, j).getInfo().equals("")) infos[i][j] = "-";
-//                    else infos[i][j] = spreadsheet.getCell(i, j).getInfo();
-//                }
-//            }
+            //Write how many rows and columns in table
+            printWriter.println("rows=" + spreadsheet.getRows() + " columns=" + spreadsheet.getColumns());
+            //Write table cells' info: # if the line is empty
             StringBuilder sb = new StringBuilder();
             boolean emptyLine = true;
-            //write table cells' info
             for (int i = 0; i < spreadsheet.getRows(); i++) {
                 for (int j = spreadsheet.getColumns() - 1; j >= 0; j--) {
                     if (emptyLine && !spreadsheet.getCell(i, j).getInfo().equals("")) {
