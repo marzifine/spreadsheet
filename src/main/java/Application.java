@@ -234,10 +234,13 @@ public class Application {
 
             String[][] infos = new String[rows][columns];
             for (int i = 1; i < strings.size(); i++) {
-                String[] rowInfo = strings.get(i).split(" ");
+                String[] rowInfo = strings.get(i).split("(] )");
                 for (int j = 0; j < columns; j++) {
-                    infos[i-1][j] = rowInfo[j];
-                    if (rowInfo[j].equals("#")) break;
+                    if (rowInfo[j].equals("#")) {
+                        infos[i-1][j] = "#";
+                        break;
+                    }
+                    infos[i-1][j] = rowInfo[j].substring(1);
                 }
             }
             for (int i = 0; i < rows; i++) {
@@ -277,12 +280,12 @@ public class Application {
             for (int i = 0; i < spreadsheet.getRows(); i++) {
                 for (int j = spreadsheet.getColumns() - 1; j >= 0; j--) {
                     if (emptyLine && !spreadsheet.getCell(i, j).getInfo().equals("")) {
-                        sb.append("#" + " " + new StringBuilder(spreadsheet.getCell(i, j).getInfo()).reverse() + " ");
+                        sb.append("#" + " " + new StringBuilder("[" + spreadsheet.getCell(i, j).getInfo() + "]").reverse() + " ");
                         emptyLine = false;
                     } else if (!emptyLine && spreadsheet.getCell(i, j).getInfo().equals(""))
-                        sb.append("-" + " ");
+                        sb.append(new StringBuilder("[" + "-" + "]").reverse() + " ");
                     else if (!emptyLine && !spreadsheet.getCell(i, j).getInfo().equals(""))
-                        sb.append(new StringBuilder(spreadsheet.getCell(i, j).getInfo()).reverse() + " ");
+                        sb.append(new StringBuilder("[" + spreadsheet.getCell(i, j).getInfo() + "]").reverse() + " ");
                 }
                 if (sb.reverse().toString().startsWith(" ")) sb.deleteCharAt(0);
                 if (emptyLine) printWriter.println("#");
