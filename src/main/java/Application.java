@@ -263,20 +263,36 @@ public class Application {
                     JOptionPane.YES_NO_OPTION);
             if (n == JOptionPane.NO_OPTION) return false;
         }
-        int columns = table.getColumnCount();
         try {
             FileWriter fw = new FileWriter(path);
             PrintWriter printWriter = new PrintWriter(fw);
             //write how many rows and columns in table
             printWriter.print("rows=" + spreadsheet.getRows() + " columns=" + spreadsheet.getColumns());
             printWriter.print(System.lineSeparator());
+//            String[][] infos = new String[spreadsheet.getRows()][spreadsheet.getColumns()];
+//            for (int i = 0; i < spreadsheet.getRows(); i++) {
+//                for (int j = 0; j < spreadsheet.getColumns(); j++) {
+//                    if (spreadsheet.getCell(i, j).getInfo().equals("")) infos[i][j] = "-";
+//                    else infos[i][j] = spreadsheet.getCell(i, j).getInfo();
+//                }
+//            }
+            StringBuilder sb = new StringBuilder();
+            boolean emptyInfo = true;
             //write table cells' info
             for (int i = 0; i < spreadsheet.getRows(); i++) {
-                for (int j = 0; j < spreadsheet.getColumns(); j++) {
-                    if (spreadsheet.getCell(i, j).getInfo().equals("")) printWriter.print("- ");
-                    else printWriter.print(spreadsheet.getCell(i, j).getInfo() + " ");
+                for (int j = spreadsheet.getColumns() - 1; j >= 0; j--) {
+                    if (spreadsheet.getCell(i, j).getInfo().equals("") && emptyInfo) continue;
+                    else if (spreadsheet.getCell(i, j).getInfo().equals("") && !emptyInfo) sb.append("- ");
+                    else if (!spreadsheet.getCell(i, j).getInfo().equals("")) {
+                        if (j != spreadsheet.getColumns() - 1 && spreadsheet.getCell(i, j + 1).getInfo().equals("")) {
+                            sb.append("#");
+                            emptyInfo = false;
+                        }
+                        else sb.append(spreadsheet.getCell(i, j).getInfo());
+                    }
                 }
-                printWriter.print(System.lineSeparator());
+                System.out.println(sb);
+                printWriter.println(sb.reverse());
             }
             printWriter.close();
             fw.close();
