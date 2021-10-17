@@ -175,8 +175,6 @@ public class Application {
 
         table.getModel().addTableModelListener(tl);
 
-        //TODO: handle save/load file
-
         JButton saveButton = new JButton("save");
         JButton loadButton = new JButton("load");
         JLabel label = new JLabel("Enter a file path and name (with extension \".shm\"):");
@@ -279,22 +277,25 @@ public class Application {
 //                }
 //            }
             StringBuilder sb = new StringBuilder();
-            boolean emptyInfo = true;
+            boolean emptyLine = true;
             //write table cells' info
             for (int i = 0; i < spreadsheet.getRows(); i++) {
                 for (int j = spreadsheet.getColumns() - 1; j >= 0; j--) {
-                    if (spreadsheet.getCell(i, j).getInfo().equals("") && emptyInfo) continue;
-                    else if (spreadsheet.getCell(i, j).getInfo().equals("") && !emptyInfo) sb.append("- ");
-                    else if (!spreadsheet.getCell(i, j).getInfo().equals("")) {
-                        if (j != spreadsheet.getColumns() - 1 && spreadsheet.getCell(i, j + 1).getInfo().equals("")) {
-                            sb.append("#");
-                            emptyInfo = false;
-                        }
-                        else sb.append(spreadsheet.getCell(i, j).getInfo());
-                    }
+                    if (emptyLine && !spreadsheet.getCell(i, j).getInfo().equals("")) {
+                        sb.append("#" + " " + new StringBuilder(spreadsheet.getCell(i, j).getInfo()).reverse() + " ");
+                        emptyLine = false;
+                    } else if (!emptyLine && spreadsheet.getCell(i, j).getInfo().equals(""))
+                        sb.append("-" + " ");
+                    else if (!emptyLine && !spreadsheet.getCell(i, j).getInfo().equals(""))
+                        sb.append(new StringBuilder(spreadsheet.getCell(i, j).getInfo()).reverse() + " ");
                 }
-                System.out.println(sb);
-                printWriter.println(sb.reverse());
+                if (sb.reverse().toString().startsWith(" ")) sb.deleteCharAt(0);
+                if (emptyLine) printWriter.println("#");
+                else {
+                    printWriter.println(sb);
+                    sb.delete(0, sb.toString().length());
+                    emptyLine = true;
+                }
             }
             printWriter.close();
             fw.close();
