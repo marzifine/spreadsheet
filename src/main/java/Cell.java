@@ -15,6 +15,11 @@ public class Cell {
     private int y;
     private boolean sum;
     private boolean avg;
+    private boolean min;
+    private boolean max;
+
+    private final String VALUE_ERROR = "#Val!";
+    private final String REFERENCE_ERROR = "#Ref!";
 
     public Cell(Table spreadsheet, int x, int y) {
         info = null;
@@ -25,6 +30,8 @@ public class Cell {
         this.y = y;
         sum = false;
         avg = false;
+        min = false;
+        max = false;
     }
 
     public int getX() {
@@ -71,6 +78,12 @@ public class Cell {
             } else if (temp.startsWith("AVERAGE")) {
                 avg = true;
                 function();
+            } else if (temp.startsWith("MIN")) {
+                min = true;
+                function();
+            } else if (temp.startsWith("MAX")) {
+                max = true;
+                function();
             } else if (temp.matches("(([A-Z]+)(\\d+))")) {
                 handleRef();
             } else if (temp.matches("(.*)(([A-Z]+)(\\d+))(.*)")) {
@@ -85,6 +98,7 @@ public class Cell {
         String[] edges = parseRef();
         List<String> evaluations = new LinkedList<>();
         List<Cell> cells = new LinkedList<>();
+        List<Double> numericValues = new LinkedList<>();
         double result = 0.0;
         int x1 = getX(edges[0]);
         int y1 = getY(edges[0]);
@@ -112,17 +126,24 @@ public class Cell {
             evaluations.add(referee.getEvaluation());
         }
         for (String evaluation : evaluations) {
-            if (evaluation.equals("#Ref!")) {
+            if (evaluation.equals(REFERENCE_ERROR)) {
                 compromiseCells(this);
-                temp = "#Ref!";
-                break;
+                temp = REFERENCE_ERROR;
+                return;
             }
             if (evaluation.matches("((\\d+)(.*))")) {
-                result += Double.parseDouble(evaluation);
+                numericValues.add(Double.parseDouble(evaluation));
             }
         }
-        if (avg) {
+        if (sum) {
+            result = numericValues.stream().mapToDouble(Double::doubleValue).sum();
+        } else if (avg) {
+            result = numericValues.stream().mapToDouble(Double::doubleValue).sum();
             result = result / evaluations.size();
+        } else if (min) {
+            result = numericValues.stream().mapToDouble(Double::doubleValue).min().getAsDouble();
+        } else if (max) {
+            result = numericValues.stream().mapToDouble(Double::doubleValue).max().getAsDouble();
         }
         if ((result % 1) == 0)
             temp = String.valueOf((int) result);
@@ -131,13 +152,17 @@ public class Cell {
 
     //handle math equation
     private void handleExpression() {
-        if (temp.equals("#Ref!") || temp.equals("#Val!"))
+        if (temp.equals(REFERENCE_ERROR) || temp.equals(VALUE_ERROR))
             return;
         else {
-            double result = Calculator.eval(temp);
-            if ((result % 1) == 0)
-                temp = String.valueOf((int) result);
-            else temp = String.valueOf(result);
+            try {
+                double result = Calculator.eval(temp);
+                if ((result % 1) == 0)
+                    temp = String.valueOf((int) result);
+                else temp = String.valueOf(result);
+            } catch (RuntimeException e) {
+                temp = VALUE_ERROR;
+            }
         }
     }
 
@@ -169,7 +194,7 @@ public class Cell {
     private void compromiseCells(Cell root) {
         if (!spreadsheet.getReferences().containsKey(root)) return;
         for (Cell reference : spreadsheet.getReferences().get(root)) {
-            reference.setEvaluation("#Ref!");
+            reference.setEvaluation(REFERENCE_ERROR);
         }
     }
 
@@ -213,11 +238,11 @@ public class Cell {
         //replace every reference with its numeric value
         for (int i = 0; i < matches.length; i++) {
             if (converted[i].matches("([A-Z]+)")) {
-                temp = "#Val!";
+                temp = VALUE_ERROR;
                 break;
             }
-            if (converted[i].equals("#Ref!")) {
-                temp = "#Ref!";
+            if (converted[i].equals(REFERENCE_ERROR)) {
+                temp = REFERENCE_ERROR;
                 break;
             }
             if (converted[i].equals(""))
@@ -242,6 +267,7 @@ public class Cell {
         this.info = info;
         handleInfo();
         updateCells(this);
+        spreadsheet.getEvaluations()[x][y] = evaluation;
     }
 
     private void updateCells(Cell root) {
