@@ -185,9 +185,9 @@ public class Cell {
     private void addReferences(Cell referee) {
         if (!spreadsheet.getReferences().containsKey(referee))
             spreadsheet.getReferences().put(referee, new HashSet<>());
-        if (referee.equals(this) || spreadsheet.getReferences().get(referee).contains(this)) {
+        if (spreadsheet.getReferences().containsKey(this) && (referee.equals(this) || spreadsheet.getReferences().get(this).contains(referee)))
             compromiseCells(this);
-        }
+//        else if (referee.equals(this)) compromiseCells(this);
         spreadsheet.getReferences().get(referee).add(this);
     }
 
