@@ -95,36 +95,47 @@ public class Cell {
     }
 
     private void function() {
-        String[] edges = parseRef();
+//        String[] references = parseRef();
         List<String> evaluations = new LinkedList<>();
-        List<Cell> cells = new LinkedList<>();
         List<Double> numericValues = new LinkedList<>();
         double result = 0.0;
-        int x1 = getX(edges[0]);
-        int y1 = getY(edges[0]);
-        int x2 = getX(edges[1]);
-        int y2 = getY(edges[1]);
+        String[] references_split = temp.split(";");
+        for (String s : references_split) {
+            temp = s;
+            String[] edges = parseRef();
+            if (s.contains(":")) {
+                int x1 = getX(edges[0]);
+                int y1 = getY(edges[0]);
+                int x2 = getX(edges[1]);
+                int y2 = getY(edges[1]);
 
-        int startX = Math.min(x1, x2);
-        int endX = Math.max(x1, x2);
-        int startY = Math.min(y1, y2);
-        int endY = Math.max(y1, y2);
-        for (int x = startX; x <= endX; x++) {
-            for (int y = startY; y <= endY; y++) {
+                int startX = Math.min(x1, x2);
+                int endX = Math.max(x1, x2);
+                int startY = Math.min(y1, y2);
+                int endY = Math.max(y1, y2);
+                for (int x = startX; x <= endX; x++) {
+                    for (int y = startY; y <= endY; y++) {
+                        Cell referee = spreadsheet.getCell(x, y);
+                        addReferences(referee);
+                        evaluations.add(referee.getEvaluation());
+                    }
+                }
+            } else {
+                int x = getX(edges[0]);
+                int y = getY(edges[0]);
                 Cell referee = spreadsheet.getCell(x, y);
                 addReferences(referee);
-                cells.add(referee);
                 evaluations.add(referee.getEvaluation());
             }
         }
-        if (edges.length == 3) {
-            int x = getX(edges[2]);
-            int y = getY(edges[2]);
-            Cell referee = spreadsheet.getCell(x, y);
-            addReferences(referee);
-            cells.add(referee);
-            evaluations.add(referee.getEvaluation());
-        }
+
+//        if (references.length == 3) {
+//            int x = getX(references[2]);
+//            int y = getY(references[2]);
+//            Cell referee = spreadsheet.getCell(x, y);
+//            addReferences(referee);
+//            evaluations.add(referee.getEvaluation());
+//        }
         for (String evaluation : evaluations) {
             if (evaluation.equals(REFERENCE_ERROR)) {
                 compromiseCells(this);
@@ -187,7 +198,6 @@ public class Cell {
             spreadsheet.getReferences().put(referee, new HashSet<>());
         if (spreadsheet.getReferences().containsKey(this) && (referee.equals(this) || spreadsheet.getReferences().get(this).contains(referee)))
             compromiseCells(this);
-//        else if (referee.equals(this)) compromiseCells(this);
         spreadsheet.getReferences().get(referee).add(this);
     }
 
