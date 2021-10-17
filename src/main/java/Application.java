@@ -140,6 +140,9 @@ public class Application {
                 String data = "";
                 int row = table.getRowCount();
                 int columns = table.getColumnCount();
+                int x = table.getSelectedRow();
+                int y = table.getSelectedColumn();
+                table.setValueAt(spreadsheet.getCell(x, y).getInfo(), x, y);
                 for (int i = 0; i < row; i++) {
                     for (int j = 0; j < columns; j++) {
                         if (i == table.getSelectedRow() && j == table.getSelectedColumn()) {
@@ -166,7 +169,6 @@ public class Application {
                     }
                 } else {
                     spreadsheet.setCell(x, y, data);
-//                    System.out.println(spreadsheet.getCell(x, y).getEvaluation());
                 }
             }
         };
