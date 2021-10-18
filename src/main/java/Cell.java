@@ -208,7 +208,7 @@ public class Cell {
         }
     }
 
-    private int getX(String location) {
+    protected static int getX(String location) {
         String row = Pattern.compile("(\\d+)")
                 .matcher(location)
                 .results()
@@ -218,7 +218,7 @@ public class Cell {
         return Integer.parseInt(row) - 1;
     }
 
-    private int getY(String location) {
+    protected static int getY(String location) {
         String column = Pattern.compile("([A-Z]+)")
                 .matcher(location)
                 .results()
