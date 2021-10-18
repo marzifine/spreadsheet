@@ -1,19 +1,19 @@
 import javax.swing.*;
 import javax.swing.event.*;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.text.html.parser.Entity;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
+import java.util.*;
 import java.util.List;
+import java.util.regex.MatchResult;
+import java.util.regex.Pattern;
 
 public class Application {
 
@@ -23,6 +23,8 @@ public class Application {
     private static JTable table;
     private static JScrollPane sp;
     private static boolean reload = false;
+    private static int lastSelectedX = -1;
+    private static int lastSelectedY = -1;
 
     private static class RowHeaderRenderer extends JLabel implements ListCellRenderer {
 
@@ -37,6 +39,25 @@ public class Application {
                                                       int index, boolean isSelected, boolean cellHasFocus) {
             setText((value == null) ? "" : value.toString());
             return this;
+        }
+    }
+
+    static class ColumnColorRenderer extends DefaultTableCellRenderer {
+        Color backgroundColor;
+        int row;
+        public ColumnColorRenderer(Color backgroundColor, int row) {
+            super();
+            this.backgroundColor = backgroundColor;
+            this.row = row;
+        }
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,   boolean hasFocus, int row, int column) {
+            Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            cell.setForeground(table.getForeground());
+            if (row == this.row)
+                cell.setBackground(backgroundColor);
+            else
+                cell.setBackground(table.getBackground());
+            return cell;
         }
     }
 
@@ -78,7 +99,8 @@ public class Application {
 
             spreadsheet = new Table(Integer.parseInt(rowsAmount), Integer.parseInt(columnsAmount));
         }
-            //Name the rows
+
+        //Name the rows
         String[] rows = new String[spreadsheet.getRows()];
         for (int i = 0; i < rows.length; i ++) {
             rows[i] = String.valueOf(i+1);
@@ -111,7 +133,6 @@ public class Application {
 
         //Create a table with named columns
         table = new JTable(spreadsheet.getEvaluations(), columns);
-        table.setSelectionBackground(Color.blue);
 
         //Create a container
         sp = new JScrollPane(table);
@@ -134,6 +155,43 @@ public class Application {
         table.setCellSelectionEnabled(true);
         ListSelectionModel select = table.getSelectionModel();
         select.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        table.setSelectionBackground(Color.blue);
+
+        //Add input text pane
+        JTextField inputField = new JTextField(table.getWidth());
+
+        inputField.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                super.mouseReleased(e);
+                String selected = inputField.getSelectedText();
+                if (selected != null && selected.matches("(([A-Z]+)(\\d+))")) {
+                    int xSelected = Cell.getX(selected);
+                    int ySelected = Cell.getY(selected);
+                    lastSelectedX = xSelected;
+                    lastSelectedY = ySelected;
+                    table.getColumnModel().getColumn(ySelected).setCellRenderer(new ColumnColorRenderer(Color.YELLOW, xSelected));
+                    table.updateUI();
+                } else {
+                    if (lastSelectedX != -1 && lastSelectedY != -1) {
+                        table.getColumnModel().getColumn(lastSelectedY).setCellRenderer(new ColumnColorRenderer(table.getBackground(), lastSelectedX));
+                        table.updateUI();
+                    }
+                }
+            }
+        });
+
+        inputField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String input = inputField.getText();
+                int x = table.getSelectedRow();
+                int y = table.getSelectedColumn();
+                table.setValueAt(input, x, y);
+            }
+        });
+
+        frame.add(inputField, BorderLayout.NORTH);
 
         select.addListSelectionListener(new ListSelectionListener() {
             @Override
@@ -148,10 +206,15 @@ public class Application {
                     for (int j = 0; j < columns; j++) {
                         if (i == table.getSelectedRow() && j == table.getSelectedColumn()) {
                             table.setValueAt(spreadsheet.getCell(i, j).getInfo(), i, j);
+                            inputField.setText(spreadsheet.getCell(i, j).getInfo());
+                            table.getColumnModel().getColumn(j).setCellRenderer(new ColumnColorRenderer(Color.GREEN, i));
                             continue;
                         }
                         data = spreadsheet.getCell(i, j).getEvaluation();
                         table.setValueAt(data, i, j);
+                        if (i != x && j != y) {
+                            table.getColumnModel().getColumn(j).setCellRenderer(new ColumnColorRenderer(table.getBackground(), i));
+                        }
                     }
                 }
             }
@@ -179,7 +242,8 @@ public class Application {
         JButton saveButton = new JButton("save");
         JButton loadButton = new JButton("load");
         JLabel label = new JLabel("Enter a file path and name (with extension \".shm\"):");
-        JTextField text = new JTextField("", 40);
+        JTextField text = new JTextField(50);
+
         saveButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 //save file
