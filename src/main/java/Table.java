@@ -6,6 +6,16 @@ public class Table {
     private Cell[][] spreadsheet;
     private String[][] evaluations;
     private Map<Cell, Set<Cell>> references;
+    private Table prevTable;
+    private Table savedTable;
+
+    public void setPrevTable(Table prevTable) {
+        this.prevTable = prevTable;
+    }
+
+    public void setSavedTable(Table savedTable) {
+        this.savedTable = savedTable;
+    }
 
     public Map<Cell, Set<Cell>> getReferences() {
         return references;
@@ -32,6 +42,7 @@ public class Table {
             for (int j = 0; j < columns; j++)
                 spreadsheet[i][j] = new Cell(this, i, j);
         references = new HashMap<>();
+        prevTable = null;
     }
 
     public Table(int rows, int columns) {
@@ -43,6 +54,7 @@ public class Table {
             for (int j = 0; j < columns; j++)
                 spreadsheet[i][j] = new Cell(this, i, j);
         references = new HashMap<>();
+        prevTable = null;
     }
 
     @Override
@@ -50,7 +62,15 @@ public class Table {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Table table = (Table) o;
-        return rows == table.rows && columns == table.columns && Arrays.equals(spreadsheet, table.spreadsheet) && Objects.equals(references, table.references);
+        for (int i = 0; i < this.rows; i++) {
+            for (int j = 0; j < this.columns; j++) {
+                if (!this.getSpreadsheet()[i][j].getInfo().equals(table.getSpreadsheet()[i][j].getInfo()))
+                    return false;
+                if (!this.getSpreadsheet()[i][j].getEvaluation().equals(table.getSpreadsheet()[i][j].getEvaluation()))
+                    return false;
+            }
+        }
+        return true;
     }
 
     @Override
@@ -60,9 +80,44 @@ public class Table {
         return result;
     }
 
+    public void save() {
+        if (prevTable == null) prevTable = new Table(this.getRows(), this.getColumns());
+        if (savedTable == null) savedTable = new Table(this.getRows(), this.getColumns());
+        this.savedTable = copyTable(this.prevTable);
+        this.prevTable = copyTable(this);
+    }
+
     public void setCell(int x, int y, String input) {
         spreadsheet[x][y].setInfo(input.toUpperCase());
         evaluations[x][y] = spreadsheet[x][y].getEvaluation();
+        if (!this.equals(prevTable)) {
+            save();
+        }
+    }
+
+    public Table copyTable(Table table) {
+        Table newTable = new Table(table.getRows(), table.getColumns());
+        for (int i = 0; i < newTable.rows; i++) {
+            for (int j = 0; j < newTable.columns; j++) {
+                newTable.getSpreadsheet()[i][j].setInfo(table.getSpreadsheet()[i][j].getInfo());
+                newTable.getSpreadsheet()[i][j].setEvaluation(table.getSpreadsheet()[i][j].getEvaluation());
+                newTable.getEvaluations()[i][j] = newTable.getSpreadsheet()[i][j].getEvaluation();
+            }
+        }
+        for (Cell key: table.getReferences().keySet()) {
+            newTable.getReferences().put(key, table.getReferences().get(key));
+        }
+        newTable.prevTable = table.prevTable;
+        newTable.savedTable = table.savedTable;
+        return newTable;
+    }
+
+    public Table getPrevTable() {
+        return prevTable;
+    }
+
+    public Table getSavedTable() {
+        return savedTable;
     }
 
     public Cell getCell(int x, int y) {

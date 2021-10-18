@@ -55,7 +55,7 @@ public class Cell {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Cell cell = (Cell) o;
-        return x == cell.x && y == cell.y && Objects.equals(info, cell.info) && spreadsheet.equals(cell.spreadsheet);
+        return x == cell.x && y == cell.y && this.info.equals(cell.info) && this.evaluation.equals(cell.evaluation) && spreadsheet.equals(cell.spreadsheet);
     }
 
     public Table getSpreadsheet() {

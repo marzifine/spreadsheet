@@ -201,7 +201,8 @@ public class Application {
                 int columns = table.getColumnCount();
                 int x = table.getSelectedRow();
                 int y = table.getSelectedColumn();
-                table.setValueAt(spreadsheet.getCell(x, y).getInfo(), x, y);
+                if (x >= 0 && y>= 0)
+                    table.setValueAt(spreadsheet.getCell(x, y).getInfo(), x, y);
                 for (int i = 0; i < row; i++) {
                     for (int j = 0; j < columns; j++) {
                         if (i == table.getSelectedRow() && j == table.getSelectedColumn()) {
@@ -226,13 +227,15 @@ public class Application {
                 int x = table.getSelectedRow();
                 int y = table.getSelectedColumn();
 
-                String data = (String)table.getValueAt(x, y);
-                if (spreadsheet.getCell(x, y).getInfo().matches("(.*)(([A-Z]+)(\\d+))(.*)")) {
-                    if (!data.equals(spreadsheet.getCell(x, y).getInfo()) && !data.equals(spreadsheet.getCell(x, y).getEvaluation())) {
+                if (x >= 0 && y>= 0) {
+                    String data = (String) table.getValueAt(x, y);
+                    if (spreadsheet.getCell(x, y).getInfo().matches("(.*)(([A-Z]+)(\\d+))(.*)")) {
+                        if (!data.equals(spreadsheet.getCell(x, y).getInfo()) && !data.equals(spreadsheet.getCell(x, y).getEvaluation())) {
+                            spreadsheet.setCell(x, y, data);
+                        }
+                    } else {
                         spreadsheet.setCell(x, y, data);
                     }
-                } else {
-                    spreadsheet.setCell(x, y, data);
                 }
             }
         };
@@ -242,7 +245,7 @@ public class Application {
         JButton saveButton = new JButton("save");
         JButton loadButton = new JButton("load");
         JLabel label = new JLabel("Enter a file path and name (with extension \".shm\"):");
-        JTextField text = new JTextField(50);
+        JTextField text = new JTextField(25);
 
         saveButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -270,19 +273,76 @@ public class Application {
             }
         });
 
-        JPanel MyPanel = new JPanel();
-        MyPanel.add(label, "NORTH");
-        MyPanel.add(text, "CENTER");
-        MyPanel.add(saveButton, "EAST");
-        MyPanel.add(loadButton, BorderLayout.AFTER_LINE_ENDS);
-        MyPanel.setBackground(Color.WHITE);
-        MyPanel.setPreferredSize(new Dimension(table.getWidth(), 100));
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.add(label);
+        bottomPanel.add(text);
+        bottomPanel.add(saveButton);
+        bottomPanel.add(loadButton, BorderLayout.AFTER_LINE_ENDS);
+        bottomPanel.setBackground(Color.WHITE);
+        bottomPanel.setPreferredSize(new Dimension(table.getWidth(), 100));
 
-        frame.add(MyPanel, BorderLayout.SOUTH);
+
+        JPanel upperPanel = new JPanel();
+        upperPanel.setPreferredSize(new Dimension(table.getWidth(), 30));
+        upperPanel.setBackground(Color.WHITE);
+        //TODO reset button
+        JButton resetButton = new JButton("reset");
+//        resetButton.setPreferredSize(new Dimension(30, upperPanel.getHeight()));
+        resetButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (reset()) {
+                    spreadsheet.save();
+                    Table temp = new Table(spreadsheet.getRows(), spreadsheet.getColumns()).copyTable(spreadsheet);
+                    spreadsheet = new Table(spreadsheet.getRows(), spreadsheet.getColumns());
+                    spreadsheet.setSavedTable(temp.getSavedTable());
+                    spreadsheet.setPrevTable(temp.getPrevTable());
+                }
+//                table.updateUI();
+                table.selectAll();
+                table.clearSelection();
+//                table.tableChanged(new TableModelEvent(table.getModel(), -1, -1));
+            }
+        });
+        upperPanel.add(resetButton, BorderLayout.LINE_START);
+        upperPanel.setBackground(Color.WHITE);
+
+        //TODO undo button
+        JButton undoButton = new JButton("undo");
+        undoButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (spreadsheet.getSavedTable() != null) spreadsheet = spreadsheet.getSavedTable();
+                table.selectAll();
+                table.clearSelection();
+            }
+        });
+//        upperPanel.add(undoButton, BorderLayout.BEFORE_FIRST_LINE);
+//        upperPanel.setBackground(Color.WHITE);
+//        JPanel middlePanel = new JPanel();
+//        middlePanel.add(inputField);
+//        middlePanel.setBounds(0, upperPanel.getHeight(), frame.getWidth(), upperPanel.getHeight());
+//        frame.add(middlePanel);
+////        frame.add(inputField, upperPanel.getHeight());
+//        frame.add(upperPanel, BorderLayout.NORTH);
+        bottomPanel.add(resetButton);
+        bottomPanel.add(undoButton);
+        frame.add(bottomPanel, BorderLayout.SOUTH);
+        frame.setMinimumSize(new Dimension(500, 500));
 
         //Display the window.
         frame.pack();
         frame.setVisible(true);
+    }
+
+    private static boolean reset() {
+        int n = JOptionPane.showConfirmDialog(
+                frame,
+                "Reset will permanently erase all data from table\n" +
+                        "Are you sure you want to reset it?",
+                "Reset confirmation",
+                JOptionPane.YES_NO_OPTION);
+        if (n == JOptionPane.NO_OPTION) return false;
+        return true;
     }
 
     private static boolean load(String path) {
