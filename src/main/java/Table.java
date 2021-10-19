@@ -1,3 +1,5 @@
+import org.jetbrains.annotations.NotNull;
+
 import java.util.*;
 
 public class Table {
@@ -21,6 +23,11 @@ public class Table {
         prevTable = null;
     }
 
+    /**
+     * The method creates a spreadsheet with users input of rows and columns.
+     * @param rows
+     * @param columns
+     */
     public Table(int rows, int columns) {
         this.rows = rows;
         this.columns = columns;
@@ -72,6 +79,10 @@ public class Table {
         return result;
     }
 
+    /**
+     * The method copies the previous table and saves it to the saved variable;
+     * sets the prevTable variable to the current spreadsheet.
+     */
     public void save() {
         if (prevTable == null) prevTable = new Table(this.getRows(), this.getColumns());
         if (savedTable == null) savedTable = new Table(this.getRows(), this.getColumns());
@@ -79,6 +90,12 @@ public class Table {
         this.prevTable = copyTable(this);
     }
 
+    /**
+     * The method sets information to the specific cell.
+     * @param x - row index
+     * @param y - column index
+     * @param input - cells information
+     */
     public void setCell(int x, int y, String input) {
         spreadsheet[x][y].setInfo(input.toUpperCase());
         evaluations[x][y] = spreadsheet[x][y].getEvaluation();
@@ -87,7 +104,12 @@ public class Table {
         }
     }
 
-    public Table copyTable(Table table) {
+    /**
+     * The method copies entries from the table.
+     * @param table
+     * @return table with the same entries.
+     */
+    public Table copyTable(@NotNull Table table) {
         Table newTable = new Table(table.getRows(), table.getColumns());
         for (int i = 0; i < newTable.rows; i++) {
             for (int j = 0; j < newTable.columns; j++) {

@@ -32,6 +32,11 @@ public class Cell {
         max = false;
     }
 
+    /**
+     *
+     * @param location
+     * @return int X position
+     */
     protected static int getX(String location) {
         String row = Pattern.compile("(\\d+)")
                 .matcher(location)
@@ -42,6 +47,11 @@ public class Cell {
         return Integer.parseInt(row) - 1;
     }
 
+    /**
+     *
+     * @param location
+     * @return int Y location
+     */
     protected static int getY(String location) {
         String column = Pattern.compile("([A-Z]+)")
                 .matcher(location)
@@ -90,6 +100,16 @@ public class Cell {
         this.spreadsheet = spreadsheet;
     }
 
+    /**
+     * The method takes info of the cell
+     * and handles it according to what the information contains:
+     * either a function as SUM/AVERAGE/MIN/MAX
+     * or a reference to another cell
+     * or an expression containing a reference to another cell
+     * or a math expression.
+     *
+     * The method sets an evaluation of the cell.
+     */
     public void handleInfo() {
         temp = info;
         //handle math expression
@@ -118,8 +138,11 @@ public class Cell {
         evaluation = temp;
     }
 
+    /**
+     * The method parses a function
+     * and handles an input accordingly.
+     */
     private void function() {
-//        String[] references = parseRef();
         List<String> evaluations = new LinkedList<>();
         List<Double> numericValues = new LinkedList<>();
         double result = 0.0;
@@ -153,13 +176,6 @@ public class Cell {
             }
         }
 
-//        if (references.length == 3) {
-//            int x = getX(references[2]);
-//            int y = getY(references[2]);
-//            Cell referee = spreadsheet.getCell(x, y);
-//            addReferences(referee);
-//            evaluations.add(referee.getEvaluation());
-//        }
         for (String evaluation : evaluations) {
             if (evaluation.equals(REFERENCE_ERROR)) {
                 compromiseCells(this);
@@ -185,7 +201,10 @@ public class Cell {
         else temp = String.valueOf(result);
     }
 
-    //handle math equation
+    /**
+     * The method handles a math expression
+     * using the Calculator class.
+     */
     private void handleExpression() {
         if (temp.equals(REFERENCE_ERROR) || temp.equals(VALUE_ERROR))
             return;
@@ -201,6 +220,10 @@ public class Cell {
         }
     }
 
+    /**
+     * The method parses all the mentioned references in the temp variable.
+     * @return String[] matches of all the references.
+     */
     private String[] parseRef() {
         String pattern = "(([A-Z]+)(\\d+))";
         String[] matches = Pattern.compile(pattern)
@@ -217,6 +240,11 @@ public class Cell {
         return matches;
     }
 
+    /**
+     * The method adds references mentioned in the formula
+     * to the referee's set of references.
+     * @param referee
+     */
     private void addReferences(Cell referee) {
         if (!spreadsheet.getReferences().containsKey(referee))
             spreadsheet.getReferences().put(referee, new HashSet<>());
@@ -225,6 +253,11 @@ public class Cell {
         spreadsheet.getReferences().get(referee).add(this);
     }
 
+    /**
+     * The method compromises cell's references
+     * when an Error Message occurs.
+     * @param root - the cell from which start to compromise cells
+     */
     private void compromiseCells(Cell root) {
         if (!spreadsheet.getReferences().containsKey(root)) return;
         for (Cell reference : spreadsheet.getReferences().get(root)) {
@@ -232,7 +265,10 @@ public class Cell {
         }
     }
 
-    //consists of letters at the beginning and digits at the end
+    /**
+     * The method replaces every reference with its evaluation
+     * in temp variable.
+     */
     private void handleRef() {
         String[] matches = parseRef();
         String[] converted = new String[matches.length];
@@ -243,7 +279,6 @@ public class Cell {
             converted[i] = getSpreadsheet().getCell(columnIndex, rowIndex).getEvaluation();
         }
 
-        //replace every reference with its numeric value
         for (int i = 0; i < matches.length; i++) {
             if (converted[i].matches("([A-Z]+)")) {
                 temp = VALUE_ERROR;
@@ -271,6 +306,12 @@ public class Cell {
         return info == null ? "" : info;
     }
 
+    /**
+     * The method handles an input from user,
+     * updates connected cells
+     * and sets its evaluation in the Table's evaluation array.
+     * @param info - a user's input.
+     */
     public void setInfo(String info) {
         this.info = info;
         handleInfo();
@@ -278,6 +319,11 @@ public class Cell {
         spreadsheet.getEvaluations()[x][y] = evaluation;
     }
 
+    /**
+     * The method updates connected cells when a cell's information
+     * and therefore its evaluation changes.
+     * @param root - from which cell start update cells.
+     */
     private void updateCells(Cell root) {
         if (!spreadsheet.getReferences().containsKey(root)) return;
         for (Cell reference : spreadsheet.getReferences().get(root)) {

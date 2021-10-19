@@ -1,8 +1,4 @@
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.awt.event.*;
@@ -15,13 +11,12 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
+@SuppressWarnings("unchecked")
 public class Application {
 
     private static Table spreadsheet;
-    private static String[] columns;
     private static JFrame frame;
     private static JTable table;
-    private static JScrollPane sp;
     private static boolean reload = false;
     private static int lastSelectedX = -1;
     private static int lastSelectedY = -1;
@@ -31,16 +26,13 @@ public class Application {
      * this method should be invoked from the
      * event-dispatching thread.
      */
-
-    private static void createAndShowGUI() {
+    static void createAndShowGUI() {
         //Make sure we have nice window decorations.
         JFrame.setDefaultLookAndFeelDecorated(true);
 
         //Create and set up the window.
         frame = new JFrame("Shmexel Spreadsheet");
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-//        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setIconImage(new ImageIcon("spreadsheet.png").getImage());
         frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
                 int i = JOptionPane.showConfirmDialog(null, "Are you sure you want to exit?");
@@ -51,7 +43,6 @@ public class Application {
         });
 
         if (!reload) {
-
             String rowsAmount = JOptionPane.showInputDialog("Enter the rows amount (if not set it will be set to 20): ");
             if (rowsAmount == null || !rowsAmount.matches("\\d+")) {
                 rowsAmount = "20";
@@ -72,7 +63,7 @@ public class Application {
         }
 
         //Name the columns
-        columns = new String[spreadsheet.getColumns()];
+        String[] columns = new String[spreadsheet.getColumns()];
         for (int i = 0; i < spreadsheet.getColumns(); i++) {
             if (i > ('Z' - 'A')) {
                 String prevW = columns[i - 1];
@@ -100,12 +91,11 @@ public class Application {
         table = new JTable(spreadsheet.getEvaluations(), columns);
 
         //Create a container
-        sp = new JScrollPane(table);
-        frame.add(sp, BorderLayout.CENTER);
+        JScrollPane sp = new JScrollPane(table);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
         //Set row number header
-        JList rowHeader = new JList(rows);
+        JList<String> rowHeader = new JList<>(rows);
         rowHeader.setFixedCellWidth(30);
         rowHeader.setFixedCellHeight(table.getRowHeight());
         rowHeader.setCellRenderer(new RowHeaderRenderer(table));
@@ -119,10 +109,8 @@ public class Application {
         //Enable selection
         table.setCellSelectionEnabled(true);
         ListSelectionModel select = table.getSelectionModel();
-        select.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        table.setSelectionBackground(Color.blue);
 
-        //Add input text pane
+        //Input text pane
         JTextField inputField = new JTextField(table.getWidth());
 
         inputField.addMouseListener(new MouseAdapter() {
@@ -146,154 +134,119 @@ public class Application {
             }
         });
 
-        inputField.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String input = inputField.getText();
-                int x = table.getSelectedRow();
-                int y = table.getSelectedColumn();
-                table.setValueAt(input, x, y);
-            }
+        //Get an input from user and set it to a cell
+        inputField.addActionListener(e -> {
+            String input = inputField.getText();
+            int x = table.getSelectedRow();
+            int y = table.getSelectedColumn();
+            table.setValueAt(input, x, y);
         });
 
-        frame.add(inputField, BorderLayout.NORTH);
-
-        select.addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                String data = "";
-                int row = table.getRowCount();
-                int columns = table.getColumnCount();
-                int x = table.getSelectedRow();
-                int y = table.getSelectedColumn();
-                if (x >= 0 && y >= 0)
-                    table.setValueAt(spreadsheet.getCell(x, y).getInfo(), x, y);
-                for (int i = 0; i < row; i++) {
-                    for (int j = 0; j < columns; j++) {
-                        if (i == table.getSelectedRow() && j == table.getSelectedColumn()) {
-                            table.setValueAt(spreadsheet.getCell(i, j).getInfo(), i, j);
-                            inputField.setText(spreadsheet.getCell(i, j).getInfo());
-                            table.getColumnModel().getColumn(j).setCellRenderer(new ColumnColorRenderer(Color.GREEN, i));
-                            continue;
-                        }
-                        data = spreadsheet.getCell(i, j).getEvaluation();
-                        table.setValueAt(data, i, j);
-                        if (i != x && j != y) {
-                            table.getColumnModel().getColumn(j).setCellRenderer(new ColumnColorRenderer(table.getBackground(), i));
-                        }
+        select.addListSelectionListener(e -> {
+            String data;
+            int row = table.getRowCount();
+            int columns1 = table.getColumnCount();
+            int x = table.getSelectedRow();
+            int y = table.getSelectedColumn();
+            if (x >= 0 && y >= 0)
+                table.setValueAt(spreadsheet.getCell(x, y).getInfo(), x, y);
+            for (int i = 0; i < row; i++) {
+                for (int j = 0; j < columns1; j++) {
+                    if (i == table.getSelectedRow() && j == table.getSelectedColumn()) {
+                        table.setValueAt(spreadsheet.getCell(i, j).getInfo(), i, j);
+                        inputField.setText(spreadsheet.getCell(i, j).getInfo());
+                        continue;
                     }
+                    data = spreadsheet.getCell(i, j).getEvaluation();
+                    table.setValueAt(data, i, j);
+                    table.getColumnModel().getColumn(j).setCellRenderer(new ColumnColorRenderer(table.getBackground(), i));
                 }
             }
         });
 
-        TableModelListener tl = new TableModelListener() {
-            @Override
-            public void tableChanged(TableModelEvent e) {
-                int x = table.getSelectedRow();
-                int y = table.getSelectedColumn();
+        table.getModel().addTableModelListener(e -> {
+            int x = table.getSelectedRow();
+            int y = table.getSelectedColumn();
 
-                if (x >= 0 && y >= 0) {
-                    String data = (String) table.getValueAt(x, y);
-                    if (spreadsheet.getCell(x, y).getInfo().matches("(.*)(([A-Z]+)(\\d+))(.*)")) {
-                        if (!data.equals(spreadsheet.getCell(x, y).getInfo()) && !data.equals(spreadsheet.getCell(x, y).getEvaluation())) {
-                            spreadsheet.setCell(x, y, data);
-                        }
-                    } else {
+            if (x >= 0 && y >= 0) {
+                String data = (String) table.getValueAt(x, y);
+                if (spreadsheet.getCell(x, y).getInfo().matches("(.*)(([A-Z]+)(\\d+))(.*)")) {
+                    if (!data.equals(spreadsheet.getCell(x, y).getInfo()) && !data.equals(spreadsheet.getCell(x, y).getEvaluation())) {
                         spreadsheet.setCell(x, y, data);
                     }
-                }
+                } else if (!data.matches("Infinity"))
+                    spreadsheet.setCell(x, y, data);
             }
-        };
+        });
 
-        table.getModel().addTableModelListener(tl);
-
-
-        JButton saveButton = new JButton("save");
-        JButton loadButton = new JButton("load");
         JLabel label = new JLabel("Enter a file path and name (with extension \".shm\"):");
         JTextField text = new JTextField(25);
 
-        saveButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                //save file
-                if (save(table, spreadsheet, text.getText())) {
-                    if (!text.getText().endsWith(".shm"))
-                        JOptionPane.showMessageDialog(frame, "Your file has been successfully saved to " + text.getText() + ".shm .");
-                    else
-                        JOptionPane.showMessageDialog(frame, "Your file has been successfully saved to " + text.getText() + " .");
-                } else
-                    JOptionPane.showMessageDialog(frame, "Did not save the file. Please enter another file name.", "Alert", JOptionPane.WARNING_MESSAGE);
-            }
+        //Save button
+        JButton saveButton = new JButton("save");
+        saveButton.addActionListener(e -> {
+            //save file
+            if (save(spreadsheet, text.getText())) {
+                if (!text.getText().endsWith(".shm"))
+                    JOptionPane.showMessageDialog(frame, "Your file has been successfully saved to " + text.getText() + ".shm .");
+                else
+                    JOptionPane.showMessageDialog(frame, "Your file has been successfully saved to " + text.getText() + " .");
+            } else
+                JOptionPane.showMessageDialog(frame, "Did not save the file. Please enter another file name.", "Alert", JOptionPane.WARNING_MESSAGE);
+            text.setText("");
         });
 
-        loadButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                //load file
-                if (load(text.getText())) {
-                    if (!text.getText().endsWith(".shm"))
-                        JOptionPane.showMessageDialog(frame, "Your file has been successfully loaded from " + text.getText() + ".shm .");
-                    else
-                        JOptionPane.showMessageDialog(frame, "Your file has been successfully loaded from " + text.getText() + " .");
-                    reload = true;
-                    createAndShowGUI();
-                } else
-                    JOptionPane.showMessageDialog(frame, "Could not load the file. Please enter another file name.", "Alert", JOptionPane.WARNING_MESSAGE);
-            }
+        //Load button
+        JButton loadButton = new JButton("load");
+        loadButton.addActionListener(e -> {
+            //load file
+            if (load(text.getText())) {
+                if (!text.getText().endsWith(".shm"))
+                    JOptionPane.showMessageDialog(frame, "Your file has been successfully loaded from " + text.getText() + ".shm .");
+                else
+                    JOptionPane.showMessageDialog(frame, "Your file has been successfully loaded from " + text.getText() + " .");
+                reload = true;
+                createAndShowGUI();
+            } else
+                JOptionPane.showMessageDialog(frame, "Could not load the file. Please enter another file name.", "Alert", JOptionPane.WARNING_MESSAGE);
+            text.setText("");
         });
 
+        //Reset button
+        JButton resetButton = new JButton("reset");
+        resetButton.addActionListener(e -> {
+            if (reset()) {
+                spreadsheet.save();
+                Table temp = new Table(spreadsheet.getRows(), spreadsheet.getColumns()).copyTable(spreadsheet);
+                spreadsheet = new Table(spreadsheet.getRows(), spreadsheet.getColumns());
+                spreadsheet.setSavedTable(temp.getSavedTable());
+                spreadsheet.setPrevTable(temp.getPrevTable());
+            }
+            table.selectAll();
+            table.clearSelection();
+        });
+
+        //Undo button
+        JButton undoButton = new JButton("undo");
+        undoButton.addActionListener(e -> {
+            if (spreadsheet.getSavedTable() != null) spreadsheet = spreadsheet.getSavedTable();
+            table.selectAll();
+            table.clearSelection();
+        });
+
+        //Bottom panel for save/load/reset/undo buttons and an input file path text.
         JPanel bottomPanel = new JPanel();
         bottomPanel.add(label);
         bottomPanel.add(text);
         bottomPanel.add(saveButton);
         bottomPanel.add(loadButton, BorderLayout.AFTER_LINE_ENDS);
+        bottomPanel.add(resetButton);
+        bottomPanel.add(undoButton);
         bottomPanel.setBackground(Color.WHITE);
         bottomPanel.setPreferredSize(new Dimension(table.getWidth(), 100));
 
-
-        JPanel upperPanel = new JPanel();
-        upperPanel.setPreferredSize(new Dimension(table.getWidth(), 30));
-        upperPanel.setBackground(Color.WHITE);
-        //TODO reset button
-        JButton resetButton = new JButton("reset");
-//        resetButton.setPreferredSize(new Dimension(30, upperPanel.getHeight()));
-        resetButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                if (reset()) {
-                    spreadsheet.save();
-                    Table temp = new Table(spreadsheet.getRows(), spreadsheet.getColumns()).copyTable(spreadsheet);
-                    spreadsheet = new Table(spreadsheet.getRows(), spreadsheet.getColumns());
-                    spreadsheet.setSavedTable(temp.getSavedTable());
-                    spreadsheet.setPrevTable(temp.getPrevTable());
-                }
-//                table.updateUI();
-                table.selectAll();
-                table.clearSelection();
-//                table.tableChanged(new TableModelEvent(table.getModel(), -1, -1));
-            }
-        });
-        upperPanel.add(resetButton, BorderLayout.LINE_START);
-        upperPanel.setBackground(Color.WHITE);
-
-        //TODO undo button
-        JButton undoButton = new JButton("undo");
-        undoButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (spreadsheet.getSavedTable() != null) spreadsheet = spreadsheet.getSavedTable();
-                table.selectAll();
-                table.clearSelection();
-            }
-        });
-//        upperPanel.add(undoButton, BorderLayout.BEFORE_FIRST_LINE);
-//        upperPanel.setBackground(Color.WHITE);
-//        JPanel middlePanel = new JPanel();
-//        middlePanel.add(inputField);
-//        middlePanel.setBounds(0, upperPanel.getHeight(), frame.getWidth(), upperPanel.getHeight());
-//        frame.add(middlePanel);
-////        frame.add(inputField, upperPanel.getHeight());
-//        frame.add(upperPanel, BorderLayout.NORTH);
-        bottomPanel.add(resetButton);
-        bottomPanel.add(undoButton);
+        frame.add(inputField, BorderLayout.NORTH);
+        frame.add(sp, BorderLayout.CENTER);
         frame.add(bottomPanel, BorderLayout.SOUTH);
         frame.setMinimumSize(new Dimension(500, 500));
 
@@ -302,17 +255,26 @@ public class Application {
         frame.setVisible(true);
     }
 
+    /**
+     * The method resets the table (can be undone with UNDO button)
+     * @return true if YES option was selected
+     */
     private static boolean reset() {
         int n = JOptionPane.showConfirmDialog(
                 frame,
-                "Reset will permanently erase all data from table\n" +
+                "Reset will erase all data from table\n" +
                         "Are you sure you want to reset it?",
                 "Reset confirmation",
                 JOptionPane.YES_NO_OPTION);
-        if (n == JOptionPane.NO_OPTION) return false;
-        return true;
+        return n != JOptionPane.NO_OPTION;
     }
 
+    /**
+     * Load a file from the given path and set entries' information accordingly.
+     * @param path - input file path
+     * @return true if the load was successful
+     *         else return false
+     */
     private static boolean load(String path) {
         if (!path.endsWith(".shm")) path = path + ".shm";
         File file = new File(path);
@@ -349,7 +311,18 @@ public class Application {
         }
     }
 
-    private static boolean save(JTable table, Table spreadsheet, String path) {
+    /**
+     * The method saves a table;
+     * if the line is empty starting from the beginning or a specific index -
+     * write #.
+     * Else replace an empty input with [-] sign.
+     * Every cell's information is saves within [] brackets.
+     * @param spreadsheet - spreadsheet to save
+     * @param path - local file path
+     * @return true if the save was successful
+     *         else return false
+     */
+    private static boolean save(Table spreadsheet, String path) {
         if (!path.endsWith(".shm")) path = path + ".shm";
         File file = new File(path);
         if (file.exists()) {
@@ -372,12 +345,13 @@ public class Application {
             for (int i = 0; i < spreadsheet.getRows(); i++) {
                 for (int j = spreadsheet.getColumns() - 1; j >= 0; j--) {
                     if (emptyLine && !spreadsheet.getCell(i, j).getInfo().equals("")) {
-                        sb.append("#" + " " + new StringBuilder("[" + spreadsheet.getCell(i, j).getInfo() + "]").reverse() + " ");
+                        sb.append("#" + " ").append(new StringBuilder("[" + spreadsheet.getCell(i, j).getInfo() + "]")
+                                .reverse()).append(" ");
                         emptyLine = false;
                     } else if (!emptyLine && spreadsheet.getCell(i, j).getInfo().equals(""))
-                        sb.append(new StringBuilder("[" + "-" + "]").reverse() + " ");
+                        sb.append(new StringBuilder("[" + "-" + "]").reverse()).append(" ");
                     else if (!emptyLine && !spreadsheet.getCell(i, j).getInfo().equals(""))
-                        sb.append(new StringBuilder("[" + spreadsheet.getCell(i, j).getInfo() + "]").reverse() + " ");
+                        sb.append(new StringBuilder("[" + spreadsheet.getCell(i, j).getInfo() + "]").reverse()).append(" ");
                 }
                 if (sb.reverse().toString().startsWith(" ")) sb.deleteCharAt(0);
                 if (emptyLine) printWriter.println("#");
@@ -396,16 +370,10 @@ public class Application {
         }
     }
 
-    public static void main(String[] args) {
-        //Schedule a job for the event-dispatching thread:
-        //creating and showing this application's GUI.
-        javax.swing.SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                createAndShowGUI();
-            }
-        });
-    }
-
+    /**
+     * The row header renderer creates a row header
+     */
+    @SuppressWarnings("rawtypes")
     private static class RowHeaderRenderer extends JLabel implements ListCellRenderer {
 
         RowHeaderRenderer(JTable table) {
@@ -422,6 +390,9 @@ public class Application {
         }
     }
 
+    /**
+     * The column color renderer changes background of specific cell
+     */
     static class ColumnColorRenderer extends DefaultTableCellRenderer {
         Color backgroundColor;
         int row;
