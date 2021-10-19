@@ -150,6 +150,7 @@ public class Cell {
         for (String s : references_split) {
             temp = s;
             String[] edges = parseRef();
+            if (temp.equals(REFERENCE_ERROR)) return;
             if (s.contains(":")) {
                 int x1 = getX(edges[0]);
                 int y1 = getY(edges[0]);
@@ -234,8 +235,10 @@ public class Cell {
         for (String match : matches) {
             int x = getX(match);
             int y = getY(match);
-            if (sum || avg) {
-            } else addReferences(spreadsheet.getCell(x, y));
+            if (x >= spreadsheet.getRows() || y >= spreadsheet.getColumns())
+                temp = REFERENCE_ERROR;
+            else if (!(sum || avg))
+                addReferences(spreadsheet.getCell(x, y));
         }
         return matches;
     }
@@ -271,6 +274,7 @@ public class Cell {
      */
     private void handleRef() {
         String[] matches = parseRef();
+        if (temp.equals(REFERENCE_ERROR)) return;
         String[] converted = new String[matches.length];
         for (int i = 0; i < matches.length; i++) {
             int columnIndex = getX(matches[i]);

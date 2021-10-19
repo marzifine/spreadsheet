@@ -11,22 +11,10 @@ public class Table {
     private Table prevTable;
     private Table savedTable;
 
-    public Table() {
-        rows = 5;
-        columns = 5;
-        spreadsheet = new Cell[rows][columns];
-        evaluations = new String[rows][columns];
-        for (int i = 0; i < rows; i++)
-            for (int j = 0; j < columns; j++)
-                spreadsheet[i][j] = new Cell(this, i, j);
-        references = new HashMap<>();
-        prevTable = null;
-    }
-
     /**
      * The method creates a spreadsheet with users input of rows and columns.
-     * @param rows
-     * @param columns
+     * @param rows - rows amount
+     * @param columns - columns amount
      */
     public Table(int rows, int columns) {
         this.rows = rows;
@@ -106,7 +94,7 @@ public class Table {
 
     /**
      * The method copies entries from the table.
-     * @param table
+     * @param table - table to copy
      * @return table with the same entries.
      */
     public Table copyTable(@NotNull Table table) {
