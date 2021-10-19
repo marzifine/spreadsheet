@@ -19,7 +19,7 @@ public class Calculator {
             double parse() {
                 toNextChar();
                 double x = parseExpression();
-                if (pos < str.length()) throw new RuntimeException("Unexpected: " + (char)ch);
+                if (pos < str.length()) throw new RuntimeException("Unexpected: " + (char) ch);
                 return x;
             }
 
@@ -60,7 +60,7 @@ public class Calculator {
                     if (func.equals("sqrt")) x = Math.sqrt(x);
                     else throw new RuntimeException("Unknown function: " + func);
                 } else {
-                    throw new RuntimeException("Unexpected: " + (char)ch);
+                    throw new RuntimeException("Unexpected: " + (char) ch);
                 }
                 if (handle('^')) x = Math.pow(x, parseFactor()); // exponentiation
 

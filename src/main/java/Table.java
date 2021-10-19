@@ -9,30 +9,6 @@ public class Table {
     private Table prevTable;
     private Table savedTable;
 
-    public void setPrevTable(Table prevTable) {
-        this.prevTable = prevTable;
-    }
-
-    public void setSavedTable(Table savedTable) {
-        this.savedTable = savedTable;
-    }
-
-    public Map<Cell, Set<Cell>> getReferences() {
-        return references;
-    }
-
-    public void setReferences(Map<Cell, Set<Cell>> references) {
-        this.references = references;
-    }
-
-    public String[][] getEvaluations() {
-        return evaluations;
-    }
-
-    public void setEvaluations(String[][] evaluations) {
-        this.evaluations = evaluations;
-    }
-
     public Table() {
         rows = 5;
         columns = 5;
@@ -55,6 +31,22 @@ public class Table {
                 spreadsheet[i][j] = new Cell(this, i, j);
         references = new HashMap<>();
         prevTable = null;
+    }
+
+    public Map<Cell, Set<Cell>> getReferences() {
+        return references;
+    }
+
+    public void setReferences(Map<Cell, Set<Cell>> references) {
+        this.references = references;
+    }
+
+    public String[][] getEvaluations() {
+        return evaluations;
+    }
+
+    public void setEvaluations(String[][] evaluations) {
+        this.evaluations = evaluations;
     }
 
     @Override
@@ -104,7 +96,7 @@ public class Table {
                 newTable.getEvaluations()[i][j] = newTable.getSpreadsheet()[i][j].getEvaluation();
             }
         }
-        for (Cell key: table.getReferences().keySet()) {
+        for (Cell key : table.getReferences().keySet()) {
             newTable.getReferences().put(key, table.getReferences().get(key));
         }
         newTable.prevTable = table.prevTable;
@@ -116,8 +108,16 @@ public class Table {
         return prevTable;
     }
 
+    public void setPrevTable(Table prevTable) {
+        this.prevTable = prevTable;
+    }
+
     public Table getSavedTable() {
         return savedTable;
+    }
+
+    public void setSavedTable(Table savedTable) {
+        this.savedTable = savedTable;
     }
 
     public Cell getCell(int x, int y) {

@@ -1,7 +1,9 @@
 import javax.swing.*;
-import javax.swing.event.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.text.html.parser.Entity;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
@@ -10,10 +12,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Arrays;
 import java.util.List;
-import java.util.regex.MatchResult;
-import java.util.regex.Pattern;
 
 public class Application {
 
@@ -25,41 +25,6 @@ public class Application {
     private static boolean reload = false;
     private static int lastSelectedX = -1;
     private static int lastSelectedY = -1;
-
-    private static class RowHeaderRenderer extends JLabel implements ListCellRenderer {
-
-        RowHeaderRenderer(JTable table) {
-            //adjust cell size
-            setBorder(UIManager.getBorder("TableHeader.cellBorder"));
-            setFont(table.getTableHeader().getFont());
-            setBackground(Color.white);
-        }
-
-        public Component getListCellRendererComponent(JList list, Object value,
-                                                      int index, boolean isSelected, boolean cellHasFocus) {
-            setText((value == null) ? "" : value.toString());
-            return this;
-        }
-    }
-
-    static class ColumnColorRenderer extends DefaultTableCellRenderer {
-        Color backgroundColor;
-        int row;
-        public ColumnColorRenderer(Color backgroundColor, int row) {
-            super();
-            this.backgroundColor = backgroundColor;
-            this.row = row;
-        }
-        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,   boolean hasFocus, int row, int column) {
-            Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-            cell.setForeground(table.getForeground());
-            if (row == this.row)
-                cell.setBackground(backgroundColor);
-            else
-                cell.setBackground(table.getBackground());
-            return cell;
-        }
-    }
 
     /**
      * Create the GUI and show it.  For thread safety,
@@ -76,10 +41,10 @@ public class Application {
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 //        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setIconImage(new ImageIcon("spreadsheet.png").getImage());
-        frame.addWindowListener(new WindowAdapter(){
-            public void windowClosing(WindowEvent e){
+        frame.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
                 int i = JOptionPane.showConfirmDialog(null, "Are you sure you want to exit?");
-                if(i == JOptionPane.YES_OPTION){
+                if (i == JOptionPane.YES_OPTION) {
                     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 }
             }
@@ -102,15 +67,15 @@ public class Application {
 
         //Name the rows
         String[] rows = new String[spreadsheet.getRows()];
-        for (int i = 0; i < rows.length; i ++) {
-            rows[i] = String.valueOf(i+1);
+        for (int i = 0; i < rows.length; i++) {
+            rows[i] = String.valueOf(i + 1);
         }
 
         //Name the columns
         columns = new String[spreadsheet.getColumns()];
         for (int i = 0; i < spreadsheet.getColumns(); i++) {
             if (i > ('Z' - 'A')) {
-                String prevW = columns[i-1];
+                String prevW = columns[i - 1];
                 int temp = prevW.length() - 1;
                 for (int j = prevW.length() - 1; j >= 0; j--) {
                     if (prevW.charAt(j) != 'Z') {
@@ -128,7 +93,7 @@ public class Application {
                     columns[i] = String.valueOf(chars);
                 }
             } else if (i == 0) columns[i] = String.valueOf('A');
-            else columns[i] = String.valueOf((char)('A' + i));
+            else columns[i] = String.valueOf((char) ('A' + i));
         }
 
         //Create a table with named columns
@@ -201,7 +166,7 @@ public class Application {
                 int columns = table.getColumnCount();
                 int x = table.getSelectedRow();
                 int y = table.getSelectedColumn();
-                if (x >= 0 && y>= 0)
+                if (x >= 0 && y >= 0)
                     table.setValueAt(spreadsheet.getCell(x, y).getInfo(), x, y);
                 for (int i = 0; i < row; i++) {
                     for (int j = 0; j < columns; j++) {
@@ -227,7 +192,7 @@ public class Application {
                 int x = table.getSelectedRow();
                 int y = table.getSelectedColumn();
 
-                if (x >= 0 && y>= 0) {
+                if (x >= 0 && y >= 0) {
                     String data = (String) table.getValueAt(x, y);
                     if (spreadsheet.getCell(x, y).getInfo().matches("(.*)(([A-Z]+)(\\d+))(.*)")) {
                         if (!data.equals(spreadsheet.getCell(x, y).getInfo()) && !data.equals(spreadsheet.getCell(x, y).getEvaluation())) {
@@ -242,6 +207,7 @@ public class Application {
 
         table.getModel().addTableModelListener(tl);
 
+
         JButton saveButton = new JButton("save");
         JButton loadButton = new JButton("load");
         JLabel label = new JLabel("Enter a file path and name (with extension \".shm\"):");
@@ -250,26 +216,28 @@ public class Application {
         saveButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 //save file
-                if(save(table, spreadsheet, text.getText())) {
-                    if (!text.getText().endsWith(".shm")) JOptionPane.showMessageDialog(frame,"Your file has been successfully saved to " + text.getText() + ".shm .");
-                    else JOptionPane.showMessageDialog(frame,"Your file has been successfully saved to " + text.getText() + " .");
-                }
-                else JOptionPane.showMessageDialog(frame,"Did not save the file. Please enter another file name.","Alert",JOptionPane.WARNING_MESSAGE);
+                if (save(table, spreadsheet, text.getText())) {
+                    if (!text.getText().endsWith(".shm"))
+                        JOptionPane.showMessageDialog(frame, "Your file has been successfully saved to " + text.getText() + ".shm .");
+                    else
+                        JOptionPane.showMessageDialog(frame, "Your file has been successfully saved to " + text.getText() + " .");
+                } else
+                    JOptionPane.showMessageDialog(frame, "Did not save the file. Please enter another file name.", "Alert", JOptionPane.WARNING_MESSAGE);
             }
         });
 
         loadButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 //load file
-                if(load(text.getText())) {
+                if (load(text.getText())) {
                     if (!text.getText().endsWith(".shm"))
                         JOptionPane.showMessageDialog(frame, "Your file has been successfully loaded from " + text.getText() + ".shm .");
                     else
                         JOptionPane.showMessageDialog(frame, "Your file has been successfully loaded from " + text.getText() + " .");
-                reload = true;
-                createAndShowGUI();
-                }
-                else JOptionPane.showMessageDialog(frame,"Could not load the file. Please enter another file name.","Alert",JOptionPane.WARNING_MESSAGE);
+                    reload = true;
+                    createAndShowGUI();
+                } else
+                    JOptionPane.showMessageDialog(frame, "Could not load the file. Please enter another file name.", "Alert", JOptionPane.WARNING_MESSAGE);
             }
         });
 
@@ -361,10 +329,10 @@ public class Application {
                 String[] rowInfo = strings.get(i).split("(] )");
                 for (int j = 0; j < columns; j++) {
                     if (rowInfo[j].equals("#")) {
-                        infos[i-1][j] = "#";
+                        infos[i - 1][j] = "#";
                         break;
                     }
-                    infos[i-1][j] = rowInfo[j].substring(1);
+                    infos[i - 1][j] = rowInfo[j].substring(1);
                 }
             }
             for (int i = 0; i < rows; i++) {
@@ -388,7 +356,7 @@ public class Application {
             int n = JOptionPane.showConfirmDialog(
                     frame,
                     "This file does already exist.\n" +
-                    "Are you sure you want to overwrite it?",
+                            "Are you sure you want to overwrite it?",
                     "File overwrite confirmation",
                     JOptionPane.YES_NO_OPTION);
             if (n == JOptionPane.NO_OPTION) return false;
@@ -436,5 +404,42 @@ public class Application {
                 createAndShowGUI();
             }
         });
+    }
+
+    private static class RowHeaderRenderer extends JLabel implements ListCellRenderer {
+
+        RowHeaderRenderer(JTable table) {
+            //adjust cell size
+            setBorder(UIManager.getBorder("TableHeader.cellBorder"));
+            setFont(table.getTableHeader().getFont());
+            setBackground(Color.white);
+        }
+
+        public Component getListCellRendererComponent(JList list, Object value,
+                                                      int index, boolean isSelected, boolean cellHasFocus) {
+            setText((value == null) ? "" : value.toString());
+            return this;
+        }
+    }
+
+    static class ColumnColorRenderer extends DefaultTableCellRenderer {
+        Color backgroundColor;
+        int row;
+
+        public ColumnColorRenderer(Color backgroundColor, int row) {
+            super();
+            this.backgroundColor = backgroundColor;
+            this.row = row;
+        }
+
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            cell.setForeground(table.getForeground());
+            if (row == this.row)
+                cell.setBackground(backgroundColor);
+            else
+                cell.setBackground(table.getBackground());
+            return cell;
+        }
     }
 }

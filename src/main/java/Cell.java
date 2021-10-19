@@ -1,12 +1,13 @@
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Cell {
+    private final String VALUE_ERROR = "#Val!";
+    private final String REFERENCE_ERROR = "#Ref!";
     private String info;
     private String evaluation;
     private String temp;
@@ -17,9 +18,6 @@ public class Cell {
     private boolean avg;
     private boolean min;
     private boolean max;
-
-    private final String VALUE_ERROR = "#Val!";
-    private final String REFERENCE_ERROR = "#Ref!";
 
     public Cell(Table spreadsheet, int x, int y) {
         info = null;
@@ -32,6 +30,32 @@ public class Cell {
         avg = false;
         min = false;
         max = false;
+    }
+
+    protected static int getX(String location) {
+        String row = Pattern.compile("(\\d+)")
+                .matcher(location)
+                .results()
+                .map(MatchResult::group)
+                .collect(Collectors.toList())
+                .get(0);
+        return Integer.parseInt(row) - 1;
+    }
+
+    protected static int getY(String location) {
+        String column = Pattern.compile("([A-Z]+)")
+                .matcher(location)
+                .results()
+                .map(MatchResult::group)
+                .collect(Collectors.toList())
+                .get(0);
+        int columnIndex = -26;
+        for (int j = 0; j < column.length(); j++) {
+            columnIndex += column.charAt(j);
+            columnIndex -= 'A';
+            columnIndex += 26;
+        }
+        return columnIndex;
     }
 
     public int getX() {
@@ -187,8 +211,8 @@ public class Cell {
         for (String match : matches) {
             int x = getX(match);
             int y = getY(match);
-            if (sum || avg) {}
-            else addReferences(spreadsheet.getCell(x, y));
+            if (sum || avg) {
+            } else addReferences(spreadsheet.getCell(x, y));
         }
         return matches;
     }
@@ -206,32 +230,6 @@ public class Cell {
         for (Cell reference : spreadsheet.getReferences().get(root)) {
             reference.setEvaluation(REFERENCE_ERROR);
         }
-    }
-
-    protected static int getX(String location) {
-        String row = Pattern.compile("(\\d+)")
-                .matcher(location)
-                .results()
-                .map(MatchResult::group)
-                .collect(Collectors.toList())
-                .get(0);
-        return Integer.parseInt(row) - 1;
-    }
-
-    protected static int getY(String location) {
-        String column = Pattern.compile("([A-Z]+)")
-                .matcher(location)
-                .results()
-                .map(MatchResult::group)
-                .collect(Collectors.toList())
-                .get(0);
-        int columnIndex = -26;
-        for (int j = 0; j < column.length(); j++) {
-            columnIndex += column.charAt(j);
-            columnIndex -= 'A';
-            columnIndex += 26;
-        }
-        return columnIndex;
     }
 
     //consists of letters at the beginning and digits at the end
