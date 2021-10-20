@@ -408,6 +408,8 @@ public class Application {
             cell.setForeground(table.getForeground());
             if (row == this.row)
                 cell.setBackground(backgroundColor);
+            else if (row == table.getSelectedRow() && column == table.getSelectedColumn())
+                cell.setBackground(Color.GREEN);
             else
                 cell.setBackground(table.getBackground());
             return cell;

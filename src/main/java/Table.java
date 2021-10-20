@@ -1,5 +1,3 @@
-import org.jetbrains.annotations.NotNull;
-
 import java.util.*;
 
 public class Table {
@@ -97,7 +95,7 @@ public class Table {
      * @param table - table to copy
      * @return table with the same entries.
      */
-    public Table copyTable(@NotNull Table table) {
+    public Table copyTable(Table table) {
         Table newTable = new Table(table.getRows(), table.getColumns());
         for (int i = 0; i < newTable.rows; i++) {
             for (int j = 0; j < newTable.columns; j++) {
