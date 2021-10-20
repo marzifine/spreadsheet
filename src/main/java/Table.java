@@ -1,5 +1,6 @@
 import java.util.*;
 
+@SuppressWarnings("unused")
 public class Table {
     private int rows;
     private int columns;
@@ -61,7 +62,7 @@ public class Table {
     @Override
     public int hashCode() {
         int result = Objects.hash(rows, columns, references);
-        result = 31 * result + Arrays.hashCode(spreadsheet);
+        result = 31 * result + Arrays.deepHashCode(spreadsheet);
         return result;
     }
 

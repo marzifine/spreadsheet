@@ -26,8 +26,10 @@ public class Calculator {
             double parseExpression() {
                 double x = parseTerm();
                 while (true) {
-                    if (handle('+')) x += parseTerm(); // addition
-                    else if (handle('-')) x -= parseTerm(); // subtraction
+                    // addition
+                    if (handle('+')) x += parseTerm();
+                    // subtraction
+                    else if (handle('-')) x -= parseTerm();
                     else return x;
                 }
             }
@@ -35,8 +37,10 @@ public class Calculator {
             double parseTerm() {
                 double x = parseFactor();
                 while (true) {
-                    if (handle('*')) x *= parseFactor(); // multiplication
-                    else if (handle('/')) x /= parseFactor(); // division
+                    // multiplication
+                    if (handle('*')) x *= parseFactor();
+                    // division
+                    else if (handle('/')) x /= parseFactor();
                     else return x;
                 }
             }
@@ -47,13 +51,15 @@ public class Calculator {
 
                 double x;
                 int startPos = this.pos;
-                if (handle('(')) { // parentheses
+                // parentheses
+                if (handle('(')) {
                     x = parseExpression();
                     handle(')');
                 } else if ((ch >= '0' && ch <= '9') || ch == '.') {
                     while ((ch >= '0' && ch <= '9') || ch == '.') toNextChar();
                     x = Double.parseDouble(str.substring(startPos, this.pos));
-                } else if (ch >= 'a' && ch <= 'z') { // functions
+                    // functions
+                } else if (ch >= 'a' && ch <= 'z') {
                     while (ch >= 'a' && ch <= 'z') toNextChar();
                     String func = str.substring(startPos, this.pos);
                     x = parseFactor();
@@ -62,7 +68,8 @@ public class Calculator {
                 } else {
                     throw new RuntimeException("Unexpected: " + (char) ch);
                 }
-                if (handle('^')) x = Math.pow(x, parseFactor()); // exponentiation
+                // exponentiation
+                if (handle('^')) x = Math.pow(x, parseFactor());
 
                 return x;
             }

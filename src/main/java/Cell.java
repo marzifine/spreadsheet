@@ -5,6 +5,7 @@ import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+@SuppressWarnings({"unused", "OptionalGetWithoutIsPresent"})
 public class Cell {
     private final String VALUE_ERROR = "#Val!";
     private final String REFERENCE_ERROR = "#Ref!";
@@ -34,7 +35,7 @@ public class Cell {
 
     /**
      *
-     * @param location
+     * @param location - location as string i.e. A1
      * @return int X position
      */
     protected static int getX(String location) {
@@ -49,7 +50,7 @@ public class Cell {
 
     /**
      *
-     * @param location
+     * @param location - location as string i.e. A1
      * @return int Y location
      */
     protected static int getY(String location) {
@@ -207,9 +208,7 @@ public class Cell {
      * using the Calculator class.
      */
     private void handleExpression() {
-        if (temp.equals(REFERENCE_ERROR) || temp.equals(VALUE_ERROR))
-            return;
-        else {
+        if (!(temp.equals(REFERENCE_ERROR) || temp.equals(VALUE_ERROR))) {
             try {
                 double result = Calculator.eval(temp);
                 if ((result % 1) == 0)
@@ -246,7 +245,7 @@ public class Cell {
     /**
      * The method adds references mentioned in the formula
      * to the referee's set of references.
-     * @param referee
+     * @param referee - the cell to which add reference to the current cell
      */
     private void addReferences(Cell referee) {
         if (!spreadsheet.getReferences().containsKey(referee))
