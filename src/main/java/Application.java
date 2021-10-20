@@ -1,4 +1,5 @@
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.awt.event.*;
@@ -20,6 +21,9 @@ public class Application {
     private static boolean reload = false;
     private static int lastSelectedX = -1;
     private static int lastSelectedY = -1;
+    private static JFileChooser fileChooser;
+    private static String pathToSave;
+    private static String pathToLoad;
 
     /**
      * Create the GUI and show it.  For thread safety,
@@ -179,37 +183,31 @@ public class Application {
             }
         });
 
-        JLabel label = new JLabel("Enter a file path and name (with extension \".shm\"):");
-        JTextField text = new JTextField(25);
+        fileChooser = new JFileChooser();
+        fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("Shmexel Spreadsheet document", "shm"));
 
         //Save button
         JButton saveButton = new JButton("save");
         saveButton.addActionListener(e -> {
             //save file
-            if (save(spreadsheet, text.getText())) {
-                if (!text.getText().endsWith(".shm"))
-                    JOptionPane.showMessageDialog(frame, "Your file has been successfully saved to " + text.getText() + ".shm .");
-                else
-                    JOptionPane.showMessageDialog(frame, "Your file has been successfully saved to " + text.getText() + " .");
-            } else
+            if (save(spreadsheet))
+                    JOptionPane.showMessageDialog(frame, "Your file has been successfully saved to " + pathToSave + ".");
+            else
                 JOptionPane.showMessageDialog(frame, "Did not save the file. Please enter another file name.", "Alert", JOptionPane.WARNING_MESSAGE);
-            text.setText("");
         });
 
         //Load button
         JButton loadButton = new JButton("load");
         loadButton.addActionListener(e -> {
             //load file
-            if (load(text.getText())) {
-                if (!text.getText().endsWith(".shm"))
-                    JOptionPane.showMessageDialog(frame, "Your file has been successfully loaded from " + text.getText() + ".shm .");
-                else
-                    JOptionPane.showMessageDialog(frame, "Your file has been successfully loaded from " + text.getText() + " .");
+            if (load()) {
+                JOptionPane.showMessageDialog(frame, "Your file has been successfully loaded from " + pathToLoad + ".");
+                frame.setVisible(false);
+                frame.dispose();
                 reload = true;
                 createAndShowGUI();
             } else
                 JOptionPane.showMessageDialog(frame, "Could not load the file. Please enter another file name.", "Alert", JOptionPane.WARNING_MESSAGE);
-            text.setText("");
         });
 
         //Reset button
@@ -236,8 +234,6 @@ public class Application {
 
         //Bottom panel for save/load/reset/undo buttons and an input file path text.
         JPanel bottomPanel = new JPanel();
-        bottomPanel.add(label);
-        bottomPanel.add(text);
         bottomPanel.add(saveButton);
         bottomPanel.add(loadButton, BorderLayout.AFTER_LINE_ENDS);
         bottomPanel.add(resetButton);
@@ -271,44 +267,46 @@ public class Application {
 
     /**
      * Load a file from the given path and set entries' information accordingly.
-     * @param path - input file path
      * @return true if the load was successful
      *         else return false
      */
-    private static boolean load(String path) {
-        if (!path.endsWith(".shm")) path = path + ".shm";
-        File file = new File(path);
-        if (!file.exists()) return false;
-        try {
-            List<String> strings = Files.readAllLines(Path.of(path));
+    private static boolean load() {
+        int result = fileChooser.showOpenDialog(frame);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            pathToLoad = fileChooser.getSelectedFile().getAbsolutePath();
+            File file = new File(pathToLoad);
+            if (!file.exists()) return false;
+            try {
+                List<String> strings = Files.readAllLines(Path.of(pathToLoad));
 
-            int rows = Integer.parseInt(strings.get(0).substring(strings.get(0).indexOf("=") + 1, strings.get(0).indexOf(" ")));
-            int columns = Integer.parseInt(strings.get(0).substring(strings.get(0).lastIndexOf("=") + 1));
-            spreadsheet = new Table(rows, columns);
+                int rows = Integer.parseInt(strings.get(0).substring(strings.get(0).indexOf("=") + 1, strings.get(0).indexOf(" ")));
+                int columns = Integer.parseInt(strings.get(0).substring(strings.get(0).lastIndexOf("=") + 1));
+                spreadsheet = new Table(rows, columns);
 
-            String[][] infos = new String[rows][columns];
-            for (int i = 1; i < strings.size(); i++) {
-                String[] rowInfo = strings.get(i).split("(] )");
-                for (int j = 0; j < columns; j++) {
-                    if (rowInfo[j].equals("#")) {
-                        infos[i - 1][j] = "#";
-                        break;
+                String[][] infos = new String[rows][columns];
+                for (int i = 1; i < strings.size(); i++) {
+                    String[] rowInfo = strings.get(i).split("(] )");
+                    for (int j = 0; j < columns; j++) {
+                        if (rowInfo[j].equals("#")) {
+                            infos[i - 1][j] = "#";
+                            break;
+                        }
+                        infos[i - 1][j] = rowInfo[j].substring(1);
                     }
-                    infos[i - 1][j] = rowInfo[j].substring(1);
                 }
-            }
-            for (int i = 0; i < rows; i++) {
-                for (int j = 0; j < columns; j++) {
-                    if (infos[i][j].equals("#")) break;
-                    if (infos[i][j].equals("-")) continue;
-                    spreadsheet.setCell(i, j, infos[i][j]);
+                for (int i = 0; i < rows; i++) {
+                    for (int j = 0; j < columns; j++) {
+                        if (infos[i][j].equals("#")) break;
+                        if (infos[i][j].equals("-")) continue;
+                        spreadsheet.setCell(i, j, infos[i][j]);
+                    }
                 }
+                return true;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
             }
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
+        } else return false;
     }
 
     /**
@@ -318,56 +316,63 @@ public class Application {
      * Else replace an empty input with [-] sign.
      * Every cell's information is saves within [] brackets.
      * @param spreadsheet - spreadsheet to save
-     * @param path - local file path
      * @return true if the save was successful
      *         else return false
      */
-    private static boolean save(Table spreadsheet, String path) {
-        if (!path.endsWith(".shm")) path = path + ".shm";
-        File file = new File(path);
-        if (file.exists()) {
-            int n = JOptionPane.showConfirmDialog(
-                    frame,
-                    "This file does already exist.\n" +
-                            "Are you sure you want to overwrite it?",
-                    "File overwrite confirmation",
-                    JOptionPane.YES_NO_OPTION);
-            if (n == JOptionPane.NO_OPTION) return false;
-        }
-        try {
-            FileWriter fw = new FileWriter(path);
-            PrintWriter printWriter = new PrintWriter(fw);
-            //Write how many rows and columns in table
-            printWriter.println("rows=" + spreadsheet.getRows() + " columns=" + spreadsheet.getColumns());
-            //Write table cells' info: # if the line is empty
-            StringBuilder sb = new StringBuilder();
-            boolean emptyLine = true;
-            for (int i = 0; i < spreadsheet.getRows(); i++) {
-                for (int j = spreadsheet.getColumns() - 1; j >= 0; j--) {
-                    if (emptyLine && !spreadsheet.getCell(i, j).getInfo().equals("")) {
-                        sb.append("#" + " ").append(new StringBuilder("[" + spreadsheet.getCell(i, j).getInfo() + "]")
-                                .reverse()).append(" ");
-                        emptyLine = false;
-                    } else if (!emptyLine && spreadsheet.getCell(i, j).getInfo().equals(""))
-                        sb.append(new StringBuilder("[" + "-" + "]").reverse()).append(" ");
-                    else if (!emptyLine && !spreadsheet.getCell(i, j).getInfo().equals(""))
-                        sb.append(new StringBuilder("[" + spreadsheet.getCell(i, j).getInfo() + "]").reverse()).append(" ");
-                }
-                if (sb.reverse().toString().startsWith(" ")) sb.deleteCharAt(0);
-                if (emptyLine) printWriter.println("#");
-                else {
-                    printWriter.println(sb);
-                    sb.delete(0, sb.toString().length());
-                    emptyLine = true;
-                }
+    private static boolean save(Table spreadsheet) {
+        int result = fileChooser.showSaveDialog(frame);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File fileToSave = fileChooser.getSelectedFile();
+            if (fileToSave.getAbsolutePath().endsWith(".shm"))
+                pathToSave = fileToSave.getAbsolutePath();
+            else
+                pathToSave = fileToSave.getAbsolutePath() + ".shm";
+            if (!fileToSave.getAbsolutePath().endsWith(".shm"))
+                fileToSave = new File(pathToSave);
+            if (fileToSave.exists()) {
+                int n = JOptionPane.showConfirmDialog(
+                        frame,
+                        "This file does already exist.\n" +
+                                "Are you sure you want to overwrite it?",
+                        "File overwrite confirmation",
+                        JOptionPane.YES_NO_OPTION);
+                if (n == JOptionPane.NO_OPTION) return false;
             }
-            printWriter.close();
-            fw.close();
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
+            try {
+                FileWriter fw = new FileWriter(pathToSave);
+                PrintWriter printWriter = new PrintWriter(fw);
+                //Write how many rows and columns in table
+                printWriter.println("rows=" + spreadsheet.getRows() + " columns=" + spreadsheet.getColumns());
+                //Write table cells' info: # if the line is empty
+                StringBuilder sb = new StringBuilder();
+                boolean emptyLine = true;
+                for (int i = 0; i < spreadsheet.getRows(); i++) {
+                    for (int j = spreadsheet.getColumns() - 1; j >= 0; j--) {
+                        if (emptyLine && !spreadsheet.getCell(i, j).getInfo().equals("")) {
+                            sb.append("#" + " ").append(new StringBuilder("[" + spreadsheet.getCell(i, j).getInfo() + "]")
+                                    .reverse()).append(" ");
+                            emptyLine = false;
+                        } else if (!emptyLine && spreadsheet.getCell(i, j).getInfo().equals(""))
+                            sb.append(new StringBuilder("[" + "-" + "]").reverse()).append(" ");
+                        else if (!emptyLine && !spreadsheet.getCell(i, j).getInfo().equals(""))
+                            sb.append(new StringBuilder("[" + spreadsheet.getCell(i, j).getInfo() + "]").reverse()).append(" ");
+                    }
+                    if (sb.reverse().toString().startsWith(" ")) sb.deleteCharAt(0);
+                    if (emptyLine) printWriter.println("#");
+                    else {
+                        printWriter.println(sb);
+                        sb.delete(0, sb.toString().length());
+                        emptyLine = true;
+                    }
+                }
+                printWriter.close();
+                fw.close();
+                return true;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
+            }
+        } else return false;
     }
 
     /**
