@@ -1,3 +1,5 @@
+package spreadsheet.table;
+
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -38,7 +40,7 @@ public class Cell {
      * @param location - location as string i.e. A1
      * @return int X position
      */
-    protected static int getX(String location) {
+    public static int getX(String location) {
         String row = Pattern.compile("(\\d+)")
                 .matcher(location)
                 .results()
@@ -53,7 +55,7 @@ public class Cell {
      * @param location - location as string i.e. A1
      * @return int Y location
      */
-    protected static int getY(String location) {
+    public static int getY(String location) {
         String column = Pattern.compile("([A-Z]+)")
                 .matcher(location)
                 .results()
@@ -205,7 +207,7 @@ public class Cell {
 
     /**
      * The method handles a math expression
-     * using the Calculator class.
+     * using the spreadsheet.table.Calculator class.
      */
     private void handleExpression() {
         if (!(temp.equals(REFERENCE_ERROR) || temp.equals(VALUE_ERROR))) {
@@ -312,7 +314,7 @@ public class Cell {
     /**
      * The method handles an input from user,
      * updates connected cells
-     * and sets its evaluation in the Table's evaluation array.
+     * and sets its evaluation in the spreadsheet.table.Table's evaluation array.
      * @param info - a user's input.
      */
     public void setInfo(String info) {

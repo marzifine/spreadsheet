@@ -1,3 +1,5 @@
+package spreadsheet.table;
+
 public class Calculator {
     public static double eval(final String str) {
         return new Object() {

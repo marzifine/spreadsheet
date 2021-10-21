@@ -1,3 +1,7 @@
+package spreadsheet;
+
+import spreadsheet.ui.Application;
+
 public class Main {
     public static void main(String[] args) {
         //Schedule a job for the event-dispatching thread:

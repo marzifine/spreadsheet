@@ -1,3 +1,8 @@
+package spreadsheet.ui;
+
+import spreadsheet.table.Cell;
+import spreadsheet.table.Table;
+
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -30,7 +35,7 @@ public class Application {
      * this method should be invoked from the
      * event-dispatching thread.
      */
-    static void createAndShowGUI() {
+    public static void createAndShowGUI() {
         //Make sure we have nice window decorations.
         JFrame.setDefaultLookAndFeelDecorated(true);
 
@@ -50,8 +55,10 @@ public class Application {
             JTextField rowsAmount = new JTextField();
             JTextField columnsAmount = new JTextField();
             Object[] message = {
-                    "Please enter amount of rows and columns \n" +
-                            "(default values are 20) \n",
+                    """
+Please enter amount of rows and columns\s
+(default values are 20)\s
+""",
                     "Rows:", rowsAmount,
                     "Columns:", columnsAmount
             };
