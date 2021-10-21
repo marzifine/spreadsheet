@@ -47,17 +47,29 @@ public class Application {
         });
 
         if (!reload) {
-            String rowsAmount = JOptionPane.showInputDialog("Enter the rows amount (if not set it will be set to 20): ");
-            if (rowsAmount == null || !rowsAmount.matches("\\d+")) {
-                rowsAmount = "20";
+            JTextField rowsAmount = new JTextField();
+            JTextField columnsAmount = new JTextField();
+            Object[] message = {
+                    "Please enter amount of rows and columns \n" +
+                            "(default values are 20) \n",
+                    "Rows:", rowsAmount,
+                    "Columns:", columnsAmount
+            };
+            UIManager.put("OptionPane.minimumSize",new Dimension(400,200));
+            int option = JOptionPane.showConfirmDialog(null, message,
+                    "Set rows and columns", JOptionPane.OK_CANCEL_OPTION);
+            if (option == JOptionPane.OK_OPTION) {
+                if (rowsAmount.getText() == null || !rowsAmount.getText().matches("\\d+")) {
+                    rowsAmount.setText("20");
+                }
+                if (columnsAmount.getText() == null || !columnsAmount.getText().matches("\\d+")) {
+                    columnsAmount.setText("20");
+                }
+            spreadsheet = new Table(Integer.parseInt(rowsAmount.getText()), Integer.parseInt(columnsAmount.getText()));
+            } else {
+                frame.dispose();
+                return;
             }
-
-            String columnsAmount = JOptionPane.showInputDialog("Enter the columns amount (if not set it will be set to 20): ");
-            if (columnsAmount == null || !columnsAmount.matches("\\d+")) {
-                columnsAmount = "20";
-            }
-
-            spreadsheet = new Table(Integer.parseInt(rowsAmount), Integer.parseInt(columnsAmount));
         }
 
         //Name the rows
@@ -232,16 +244,22 @@ public class Application {
             table.clearSelection();
         });
 
-        //Bottom panel for save/load/reset/undo buttons and an input file path text.
+        //Upper pane; for input text field, undo and reset buttons
+        JPanel upperPanel = new JPanel();
+        inputField.setColumns(25);
+        upperPanel.add(inputField, BorderLayout.WEST);
+        upperPanel.add(undoButton);
+        upperPanel.add(resetButton);
+        upperPanel.setBackground(Color.WHITE);
+
+        //Bottom panel for save and load buttons
         JPanel bottomPanel = new JPanel();
         bottomPanel.add(saveButton);
-        bottomPanel.add(loadButton, BorderLayout.AFTER_LINE_ENDS);
-        bottomPanel.add(resetButton);
-        bottomPanel.add(undoButton);
+        bottomPanel.add(loadButton);
         bottomPanel.setBackground(Color.WHITE);
-        bottomPanel.setPreferredSize(new Dimension(table.getWidth(), 100));
+        bottomPanel.setPreferredSize(new Dimension(table.getWidth(), 40));
 
-        frame.add(inputField, BorderLayout.NORTH);
+        frame.add(upperPanel, BorderLayout.NORTH);
         frame.add(sp, BorderLayout.CENTER);
         frame.add(bottomPanel, BorderLayout.SOUTH);
         frame.setMinimumSize(new Dimension(500, 500));
