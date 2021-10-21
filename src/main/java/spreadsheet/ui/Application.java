@@ -195,7 +195,7 @@ Please enter amount of rows and columns\s
 
             if (x >= 0 && y >= 0) {
                 String data = (String) table.getValueAt(x, y);
-                if (spreadsheet.getCell(x, y).getInfo().matches("(.*)(([A-Z]+)(\\d+))(.*)")) {
+                if (spreadsheet.getCell(x, y).getInfo().matches("(.*)(([A-Z]+)(\\d+))(.*)") || spreadsheet.getCell(x, y).getInfo().startsWith("=")) {
                     if (!data.equals(spreadsheet.getCell(x, y).getInfo())
                             && !data.equals(spreadsheet.getCell(x, y).getEvaluation())) {
                         spreadsheet.setCell(x, y, data);

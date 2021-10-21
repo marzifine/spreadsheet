@@ -61,11 +61,11 @@ public class Calculator {
                     while ((ch >= '0' && ch <= '9') || ch == '.') toNextChar();
                     x = Double.parseDouble(str.substring(startPos, this.pos));
                     // functions
-                } else if (ch >= 'a' && ch <= 'z') {
-                    while (ch >= 'a' && ch <= 'z') toNextChar();
+                } else if ((ch >= 'a' && ch <= 'z') || (ch >='A' && ch <= 'Z')) {
+                    while ((ch >= 'a' && ch <= 'z') || (ch >='A' && ch <= 'Z')) toNextChar();
                     String func = str.substring(startPos, this.pos);
                     x = parseFactor();
-                    if (func.equals("sqrt")) x = Math.sqrt(x);
+                    if (func.equals("sqrt") || func.equals("SQRT")) x = Math.sqrt(x);
                     else throw new RuntimeException("Unknown function: " + func);
                 } else {
                     throw new RuntimeException("Unexpected: " + (char) ch);
