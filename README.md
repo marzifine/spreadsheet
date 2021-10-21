@@ -21,7 +21,7 @@ Handle wrong input. \
 Reset and undo. \
 ![Reset and undo](reset_undo.gif) \
 Save and load file. \
-![Save and load](save_load.gif)
+<img src="save_load.gif" width="500" height="500"/>
 
 
 ## Supported functions and arithmetic operations
