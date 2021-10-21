@@ -216,7 +216,7 @@ Please enter amount of rows and columns\s
             if (save(spreadsheet))
                     JOptionPane.showMessageDialog(frame, "Your file has been successfully saved to " + pathToSave + ".");
             else
-                JOptionPane.showMessageDialog(frame, "Did not save the file. Please enter another file name."
+                JOptionPane.showMessageDialog(frame, "Save failed."
                         ,"Alert", JOptionPane.WARNING_MESSAGE);
         });
 
@@ -231,7 +231,7 @@ Please enter amount of rows and columns\s
                 reload = true;
                 createAndShowGUI();
             } else
-                JOptionPane.showMessageDialog(frame, "Could not load the file. Please enter another file name."
+                JOptionPane.showMessageDialog(frame, "Load failed."
                         ,"Alert", JOptionPane.WARNING_MESSAGE);
         });
 
