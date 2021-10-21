@@ -1,5 +1,5 @@
-#Shmexel Spreadsheet
-##Overview
+# Shmexel Spreadsheet
+## Overview
 A spreadsheet is a tool with table to store and analyze data. \
 A cell may be represented by: 
 * number value
@@ -8,7 +8,7 @@ A cell may be represented by:
 * operation on a range of cells
 <!-- end of the list -->
 A spreadsheet dynamically evaluates value in each cell. 
-##Window view
+## Window view
 Before the initial spreadsheet appears, the input pane for amount of rows and columns is displayed.
 ![Set rows and columns](resources/markdown/set_row_columns.png)
 The main window contains a table, upper text field to get input from user and to \
@@ -23,7 +23,7 @@ Reset and undo. \
 Save and load file. \
 
 
-##Supported functions and arithmetic operations
+## Supported functions and arithmetic operations
 * Addition '+'
 * Subtraction '-'
 * Multiplication '*'
@@ -35,9 +35,10 @@ Save and load file. \
 * MIN(REF1:REF2;REF3;REF4:REF5;...)
 * MAX(REF1:REF2;REF3;REF4:REF5;...) \
 ![Functions](func.gif) \
-##Run and build
-Clone repository
+## Run and build
+Clone repository and run Shmexel_Spreadsheet-1.0.jar file. 
 
+### Footnotes
 1. <span id="f1"></span> Expression is an equals sign, followed by numbers, references and allowed operators, i.e. =2+2 or =A1*4.
 2. <span id="f2"></span> Reference a latin letter, followed by number.
 
