@@ -8,11 +8,11 @@ A cell may be represented by:
 * operation on a range of cells
 <!-- end of the list -->
 A spreadsheet dynamically evaluates value in each cell. 
-## Window view
+## Window view and functionality
 Before the initial spreadsheet appears, the input pane for amount of rows and columns is displayed.
-![Set rows and columns](resources/markdown/set_row_columns.png)
+![Set rows and columns](resources/markdown/set_row_columns.png) \
 The main window contains a table, upper text field to get input from user and to \
-display formula of selected cell, "undo", "reset", "save" and "load" buttons.  
+display formula of selected cell, "undo", "reset", "save" and "load" buttons. \
 ![spreadsheet.Main window](resources/markdown/shmexel_main_window.png) \
 Highlight cells in the sheet when selecting its reference in the input text pane. \
 ![Highlight reference from formula](highlight.gif) \
