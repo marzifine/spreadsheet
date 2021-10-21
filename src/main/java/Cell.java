@@ -236,7 +236,7 @@ public class Cell {
             int y = getY(match);
             if (x >= spreadsheet.getRows() || y >= spreadsheet.getColumns())
                 temp = REFERENCE_ERROR;
-            else if (!(sum || avg))
+            else if (!(sum || avg || min || max))
                 addReferences(spreadsheet.getCell(x, y));
         }
         return matches;
