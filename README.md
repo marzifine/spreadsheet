@@ -13,14 +13,14 @@ Before the initial spreadsheet appears, the input pane for amount of rows and co
 ![Set rows and columns](resources/markdown/set_row_columns.png)
 The main window contains a table, upper text field to get input from user and to \
 display formula of selected cell, "undo", "reset", "save" and "load" buttons.  
-![spreadsheet.Main window](resources/markdown/shmexel_main_window.png)
-Highlight cells in the sheet when selecting its reference in the input text pane.
-![Highlight reference from formula](highlight.gif)
-Handle wrong input.
-![Wrong input -> error](ref_val.gif)
-Reset and undo.
-![Reset and undo](reset_undo.gif)
-Save and load file.
+![spreadsheet.Main window](resources/markdown/shmexel_main_window.png) \
+Highlight cells in the sheet when selecting its reference in the input text pane. \
+![Highlight reference from formula](highlight.gif) \
+Handle wrong input. \
+![Wrong input -> error](ref_val.gif) \
+Reset and undo. \
+![Reset and undo](reset_undo.gif) \
+Save and load file. \
 
 
 ##Supported functions and arithmetic operations
@@ -33,8 +33,8 @@ Save and load file.
 * SUM(REF1:REF2;REF3;REF4:REF5;...)
 * AVERAGE(REF1:REF2;REF3;REF4:REF5;...)
 * MIN(REF1:REF2;REF3;REF4:REF5;...)
-* MAX(REF1:REF2;REF3;REF4:REF5;...)
-![Functions](func.gif)
+* MAX(REF1:REF2;REF3;REF4:REF5;...) \
+![Functions](func.gif) \
 ##Run and build
 Clone repository
 
