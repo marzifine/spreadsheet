@@ -34,13 +34,13 @@ Save and load file. \
 * AVERAGE(REF1:REF2;REF3;REF4:REF5;...)
 * MIN(REF1:REF2;REF3;REF4:REF5;...)
 * MAX(REF1:REF2;REF3;REF4:REF5;...) \
-![Functions](func.gif) \
+![Functions](func.gif)
 ## Run and build
 Clone repository and run Shmexel_Spreadsheet-1.0.jar file. 
 
 ### Footnotes
 1. <span id="f1"></span> Expression is an equals sign, followed by numbers, references and allowed operators, i.e. =2+2 or =A1*4.
-2. <span id="f2"></span> Reference a latin letter, followed by number.
+2. <span id="f2"></span> Reference is a latin letter, followed by number.
 
 
 
