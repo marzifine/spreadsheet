@@ -14,9 +14,32 @@ Before the initial spreadsheet appears, the input pane for amount of rows and co
 The main window contains a table, upper text field to get input from user and to \
 display formula of selected cell, "undo", "reset", "save" and "load" buttons.  
 ![spreadsheet.Main window](resources/markdown/shmexel_main_window.png)
-When selecting a reference from form
+Highlight cells in the sheet when selecting its reference in the input text pane.
+![Highlight reference from formula](resources/markdown/highlight.gif)
+Handle wrong input.
+![Wrong input -> error](resources/markdown/ref_val.gif)
+Reset and undo.
+![Reset and undo](resources/markdown/reset_undo.gif)
+Save and load file.
+
+
+##Supported functions and arithmetic operations
+* Addition '+'
+* Subtraction '-'
+* Multiplication '*'
+* Division '/'
+* Power '^'
+* Square root 'sqrt(NUM, <span id="a1">[EXPR](#f1)</span> or <span id="a2">[REF](#f2)</span>)' 
+* SUM(REF1:REF2;REF3;REF4:REF5;...)
+* AVERAGE(REF1:REF2;REF3;REF4:REF5;...)
+* MIN(REF1:REF2;REF3;REF4:REF5;...)
+* MAX(REF1:REF2;REF3;REF4:REF5;...)
+![Functions](resources/markdown/func.gif)
 ##Run and build
 Clone repository
+
+1. <span id="f1"></span> Expression is an equals sign, followed by numbers, references and allowed operators, i.e. =2+2 or =A1*4.
+2. <span id="f2"></span> Reference a latin letter, followed by number.
 
 
 
