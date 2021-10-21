@@ -17,9 +17,9 @@ display formula of selected cell, "undo", "reset", "save" and "load" buttons.
 Highlight cells in the sheet when selecting its reference in the input text pane.
 ![Highlight reference from formula](highlight.gif)
 Handle wrong input.
-![Wrong input -> error](resources/markdown/ref_val.gif)
+![Alt text](ref_val.gif)
 Reset and undo.
-![Reset and undo](resources/markdown/reset_undo.gif)
+![Reset and undo](reset_undo.gif) / ![](reset_undo.gif)
 Save and load file.
 
 
