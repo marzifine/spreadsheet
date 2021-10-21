@@ -16,10 +16,11 @@ display formula of selected cell, "undo", "reset", "save" and "load" buttons.
 ![spreadsheet.Main window](resources/markdown/shmexel_main_window.png)
 Highlight cells in the sheet when selecting its reference in the input text pane.
 ![Highlight reference from formula](highlight.gif)
+<img src="highlight.gif" alt="aaa" height="500">
 Handle wrong input.
-![Alt text](ref_val.gif)
+![Wrong input -> error](ref_val.gif)
 Reset and undo.
-![Reset and undo](reset_undo.gif) / ![](reset_undo.gif)
+![Reset and undo](reset_undo.gif)
 Save and load file.
 
 
