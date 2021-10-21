@@ -8,7 +8,7 @@ public class Table {
     private int columns;
     private Cell[][] spreadsheet;
     private String[][] evaluations;
-    private Map<Cell, Set<Cell>> references;
+    private Map < Cell, Set < Cell >> references;
     private Table prevTable;
     private Table savedTable;
 
@@ -25,15 +25,15 @@ public class Table {
         for (int i = 0; i < rows; i++)
             for (int j = 0; j < columns; j++)
                 spreadsheet[i][j] = new Cell(this, i, j);
-        references = new HashMap<>();
+        references = new HashMap < > ();
         prevTable = null;
     }
 
-    public Map<Cell, Set<Cell>> getReferences() {
+    public Map < Cell, Set < Cell >> getReferences() {
         return references;
     }
 
-    public void setReferences(Map<Cell, Set<Cell>> references) {
+    public void setReferences(Map < Cell, Set < Cell >> references) {
         this.references = references;
     }
 
@@ -107,7 +107,7 @@ public class Table {
                 newTable.getEvaluations()[i][j] = newTable.getSpreadsheet()[i][j].getEvaluation();
             }
         }
-        for (Cell key : table.getReferences().keySet()) {
+        for (Cell key: table.getReferences().keySet()) {
             newTable.getReferences().put(key, table.getReferences().get(key));
         }
         newTable.prevTable = table.prevTable;

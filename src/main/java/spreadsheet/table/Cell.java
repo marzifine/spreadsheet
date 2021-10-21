@@ -7,7 +7,10 @@ import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-@SuppressWarnings({"unused", "OptionalGetWithoutIsPresent"})
+@SuppressWarnings({
+        "unused",
+        "OptionalGetWithoutIsPresent"
+})
 public class Cell {
     private final String VALUE_ERROR = "#Val!";
     private final String REFERENCE_ERROR = "#Ref!";
@@ -92,7 +95,8 @@ public class Cell {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Cell cell = (Cell) o;
-        return x == cell.x && y == cell.y && this.info.equals(cell.info) && this.evaluation.equals(cell.evaluation) && spreadsheet.equals(cell.spreadsheet);
+        return x == cell.x && y == cell.y && this.info.equals(cell.info) && this.evaluation.equals(cell.evaluation)
+                && spreadsheet.equals(cell.spreadsheet);
     }
 
     public Table getSpreadsheet() {
@@ -121,16 +125,20 @@ public class Cell {
             //handle reference
             if (temp.startsWith("SUM")) {
                 sum = true;
-                function();
+
+                function ();
             } else if (temp.startsWith("AVERAGE")) {
                 avg = true;
-                function();
+
+                function ();
             } else if (temp.startsWith("MIN")) {
                 min = true;
-                function();
+
+                function ();
             } else if (temp.startsWith("MAX")) {
                 max = true;
-                function();
+
+                function ();
             } else if (temp.matches("(([A-Z]+)(\\d+))")) {
                 handleRef();
             } else if (temp.matches("(.*)(([A-Z]+)(\\d+))(.*)")) {
@@ -145,12 +153,13 @@ public class Cell {
      * The method parses a function
      * and handles an input accordingly.
      */
-    private void function() {
-        List<String> evaluations = new LinkedList<>();
-        List<Double> numericValues = new LinkedList<>();
+    private void
+    function () {
+        List < String > evaluations = new LinkedList < > ();
+        List < Double > numericValues = new LinkedList < > ();
         double result = 0.0;
         String[] references_split = temp.split(";");
-        for (String s : references_split) {
+        for (String s: references_split) {
             temp = s;
             String[] edges = parseRef();
             if (temp.equals(REFERENCE_ERROR)) return;
@@ -180,7 +189,7 @@ public class Cell {
             }
         }
 
-        for (String evaluation : evaluations) {
+        for (String evaluation: evaluations) {
             if (evaluation.equals(REFERENCE_ERROR)) {
                 compromiseCells(this);
                 temp = REFERENCE_ERROR;
@@ -233,7 +242,7 @@ public class Cell {
                 .results()
                 .map(MatchResult::group)
                 .toArray(String[]::new);
-        for (String match : matches) {
+        for (String match: matches) {
             int x = getX(match);
             int y = getY(match);
             if (x >= spreadsheet.getRows() || y >= spreadsheet.getColumns())
@@ -251,8 +260,9 @@ public class Cell {
      */
     private void addReferences(Cell referee) {
         if (!spreadsheet.getReferences().containsKey(referee))
-            spreadsheet.getReferences().put(referee, new HashSet<>());
-        if (spreadsheet.getReferences().containsKey(this) && (referee.equals(this) || spreadsheet.getReferences().get(this).contains(referee)))
+            spreadsheet.getReferences().put(referee, new HashSet < > ());
+        if (spreadsheet.getReferences().containsKey(this) && (referee.equals(this) || spreadsheet.getReferences()
+                .get(this).contains(referee)))
             compromiseCells(this);
         spreadsheet.getReferences().get(referee).add(this);
     }
@@ -264,7 +274,7 @@ public class Cell {
      */
     private void compromiseCells(Cell root) {
         if (!spreadsheet.getReferences().containsKey(root)) return;
-        for (Cell reference : spreadsheet.getReferences().get(root)) {
+        for (Cell reference: spreadsheet.getReferences().get(root)) {
             reference.setEvaluation(REFERENCE_ERROR);
         }
     }
@@ -331,7 +341,7 @@ public class Cell {
      */
     private void updateCells(Cell root) {
         if (!spreadsheet.getReferences().containsKey(root)) return;
-        for (Cell reference : spreadsheet.getReferences().get(root)) {
+        for (Cell reference: spreadsheet.getReferences().get(root)) {
             reference.handleInfo();
         }
     }

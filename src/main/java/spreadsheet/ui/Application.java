@@ -62,7 +62,6 @@ Please enter amount of rows and columns\s
                     "Rows:", rowsAmount,
                     "Columns:", columnsAmount
             };
-            UIManager.put("OptionPane.minimumSize",new Dimension(400,200));
             int option = JOptionPane.showConfirmDialog(null, message,
                     "Set rows and columns", JOptionPane.OK_CANCEL_OPTION);
             if (option == JOptionPane.OK_OPTION) {
@@ -146,11 +145,13 @@ Please enter amount of rows and columns\s
                     int ySelected = Cell.getY(selected);
                     lastSelectedX = xSelected;
                     lastSelectedY = ySelected;
-                    table.getColumnModel().getColumn(ySelected).setCellRenderer(new ColumnColorRenderer(Color.YELLOW, xSelected));
+                    table.getColumnModel().getColumn(ySelected)
+                            .setCellRenderer(new ColumnColorRenderer(Color.YELLOW, xSelected));
                     table.updateUI();
                 } else {
                     if (lastSelectedX != -1 && lastSelectedY != -1) {
-                        table.getColumnModel().getColumn(lastSelectedY).setCellRenderer(new ColumnColorRenderer(table.getBackground(), lastSelectedX));
+                        table.getColumnModel().getColumn(lastSelectedY)
+                                .setCellRenderer(new ColumnColorRenderer(table.getBackground(), lastSelectedX));
                         table.updateUI();
                     }
                 }
@@ -182,7 +183,8 @@ Please enter amount of rows and columns\s
                     }
                     data = spreadsheet.getCell(i, j).getEvaluation();
                     table.setValueAt(data, i, j);
-                    table.getColumnModel().getColumn(j).setCellRenderer(new ColumnColorRenderer(table.getBackground(), i));
+                    table.getColumnModel().getColumn(j)
+                            .setCellRenderer(new ColumnColorRenderer(table.getBackground(), i));
                 }
             }
         });
@@ -194,7 +196,8 @@ Please enter amount of rows and columns\s
             if (x >= 0 && y >= 0) {
                 String data = (String) table.getValueAt(x, y);
                 if (spreadsheet.getCell(x, y).getInfo().matches("(.*)(([A-Z]+)(\\d+))(.*)")) {
-                    if (!data.equals(spreadsheet.getCell(x, y).getInfo()) && !data.equals(spreadsheet.getCell(x, y).getEvaluation())) {
+                    if (!data.equals(spreadsheet.getCell(x, y).getInfo())
+                            && !data.equals(spreadsheet.getCell(x, y).getEvaluation())) {
                         spreadsheet.setCell(x, y, data);
                     }
                 } else if (!data.matches("Infinity"))
@@ -203,7 +206,8 @@ Please enter amount of rows and columns\s
         });
 
         fileChooser = new JFileChooser();
-        fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("Shmexel Spreadsheet document", "shm"));
+        fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("Shmexel Spreadsheet document"
+                , "shm"));
 
         //Save button
         JButton saveButton = new JButton("save");
@@ -212,7 +216,8 @@ Please enter amount of rows and columns\s
             if (save(spreadsheet))
                     JOptionPane.showMessageDialog(frame, "Your file has been successfully saved to " + pathToSave + ".");
             else
-                JOptionPane.showMessageDialog(frame, "Did not save the file. Please enter another file name.", "Alert", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(frame, "Did not save the file. Please enter another file name."
+                        ,"Alert", JOptionPane.WARNING_MESSAGE);
         });
 
         //Load button
@@ -226,7 +231,8 @@ Please enter amount of rows and columns\s
                 reload = true;
                 createAndShowGUI();
             } else
-                JOptionPane.showMessageDialog(frame, "Could not load the file. Please enter another file name.", "Alert", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(frame, "Could not load the file. Please enter another file name."
+                        ,"Alert", JOptionPane.WARNING_MESSAGE);
         });
 
         //Reset button
@@ -304,7 +310,8 @@ Please enter amount of rows and columns\s
             try {
                 List<String> strings = Files.readAllLines(Path.of(pathToLoad));
 
-                int rows = Integer.parseInt(strings.get(0).substring(strings.get(0).indexOf("=") + 1, strings.get(0).indexOf(" ")));
+                int rows = Integer.parseInt(strings.get(0)
+                        .substring(strings.get(0).indexOf("=") + 1, strings.get(0).indexOf(" ")));
                 int columns = Integer.parseInt(strings.get(0).substring(strings.get(0).lastIndexOf("=") + 1));
                 spreadsheet = new Table(rows, columns);
 
@@ -433,7 +440,8 @@ Please enter amount of rows and columns\s
             this.row = row;
         }
 
-        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected
+                , boolean hasFocus, int row, int column) {
             Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             cell.setForeground(table.getForeground());
             if (row == this.row)

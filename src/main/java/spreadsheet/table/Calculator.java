@@ -30,7 +30,7 @@ public class Calculator {
                 while (true) {
                     // addition
                     if (handle('+')) x += parseTerm();
-                    // subtraction
+                        // subtraction
                     else if (handle('-')) x -= parseTerm();
                     else return x;
                 }
@@ -41,7 +41,7 @@ public class Calculator {
                 while (true) {
                     // multiplication
                     if (handle('*')) x *= parseFactor();
-                    // division
+                        // division
                     else if (handle('/')) x /= parseFactor();
                     else return x;
                 }
