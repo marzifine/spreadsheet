@@ -10,10 +10,15 @@ A cell may be represented by:
 A spreadsheet dynamically evaluates value in each cell. 
 ## Window view and functionality
 Before the initial spreadsheet appears, the input pane for amount of rows and columns is displayed.
-![Set rows and columns](resources/markdown/set_row_columns.png) \
+![Set rows and columns](resources/markdown/rows_cols.png) \
 The main window contains a table, upper text field to get input from user and to \
-display formula of selected cell, "undo", "reset", "save" and "load" buttons. \
-![spreadsheet.Main window](resources/markdown/shmexel_main_window.png) \
+display formula of selected cell, as well as the following buttons:
+* undo 
+* reset
+* save 
+* load 
+<!-- end of the list -->
+![spreadsheet.Main window](resources/markdown/spreadsheet.png) \
 Highlight cells in the sheet when selecting its reference in the input text pane. \
 ![Highlight reference from formula](highlight.gif) \
 Handle wrong input. \
