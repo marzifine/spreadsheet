@@ -29,6 +29,9 @@ public class Application {
     private static JFileChooser fileChooser;
     private static String pathToSave;
     private static String pathToLoad;
+    private static JTextField inputField;
+    private static int prevRow = -1;
+    private static int prevCol = -1;
 
     /**
      * Create the GUI and show it.  For thread safety,
@@ -71,7 +74,7 @@ Please enter amount of rows and columns\s
                 if (columnsAmount.getText() == null || !columnsAmount.getText().matches("\\d+")) {
                     columnsAmount.setText("20");
                 }
-            spreadsheet = new Table(Integer.parseInt(rowsAmount.getText()), Integer.parseInt(columnsAmount.getText()));
+                spreadsheet = new Table(Integer.parseInt(rowsAmount.getText()), Integer.parseInt(columnsAmount.getText()));
             } else {
                 frame.dispose();
                 return;
@@ -133,7 +136,7 @@ Please enter amount of rows and columns\s
         ListSelectionModel select = table.getSelectionModel();
 
         //Input text pane
-        JTextField inputField = new JTextField(table.getWidth());
+        inputField = new JTextField(table.getWidth());
 
         inputField.addMouseListener(new MouseAdapter() {
             @Override
@@ -166,28 +169,8 @@ Please enter amount of rows and columns\s
             table.setValueAt(input, x, y);
         });
 
-        select.addListSelectionListener(e -> {
-            String data;
-            int row = table.getRowCount();
-            int column = table.getColumnCount();
-            int x = table.getSelectedRow();
-            int y = table.getSelectedColumn();
-            if (x >= 0 && y >= 0)
-                table.setValueAt(spreadsheet.getCell(x, y).getInfo(), x, y);
-            for (int i = 0; i < row; i++) {
-                for (int j = 0; j < column; j++) {
-                    if (i == table.getSelectedRow() && j == table.getSelectedColumn()) {
-                        table.setValueAt(spreadsheet.getCell(i, j).getInfo(), i, j);
-                        inputField.setText(spreadsheet.getCell(i, j).getInfo());
-                        continue;
-                    }
-                    data = spreadsheet.getCell(i, j).getEvaluation();
-                    table.setValueAt(data, i, j);
-                    table.getColumnModel().getColumn(j)
-                            .setCellRenderer(new ColumnColorRenderer(table.getBackground(), i));
-                }
-            }
-        });
+        select.addListSelectionListener(e ->
+                externalCellSelection());
 
         table.getModel().addTableModelListener(e -> {
             int x = table.getSelectedRow();
@@ -214,10 +197,10 @@ Please enter amount of rows and columns\s
         saveButton.addActionListener(e -> {
             //save file
             if (save(spreadsheet))
-                    JOptionPane.showMessageDialog(frame, "Your file has been successfully saved to " + pathToSave + ".");
+                JOptionPane.showMessageDialog(frame, "Your file has been successfully saved to " + pathToSave + ".");
             else
                 JOptionPane.showMessageDialog(frame, "Save failed."
-                        ,"Alert", JOptionPane.WARNING_MESSAGE);
+                        , "Alert", JOptionPane.WARNING_MESSAGE);
         });
 
         //Load button
@@ -232,7 +215,7 @@ Please enter amount of rows and columns\s
                 createAndShowGUI();
             } else
                 JOptionPane.showMessageDialog(frame, "Load failed."
-                        ,"Alert", JOptionPane.WARNING_MESSAGE);
+                        , "Alert", JOptionPane.WARNING_MESSAGE);
         });
 
         //Reset button
@@ -276,14 +259,38 @@ Please enter amount of rows and columns\s
         frame.add(sp, BorderLayout.CENTER);
         frame.add(bottomPanel, BorderLayout.SOUTH);
         frame.setMinimumSize(new Dimension(500, 500));
-
+//        fileChooser.setMaximumSize(new Dimension(fileChooser.getWidth() - 100, fileChooser.getHeight()));
         //Display the window.
         frame.pack();
         frame.setVisible(true);
     }
 
+    private static void externalCellSelection() {
+        String data;
+        int row = table.getRowCount();
+        int columns1 = table.getColumnCount();
+        int x = table.getSelectedRow();
+        int y = table.getSelectedColumn();
+        if (x >= 0 && y >= 0)
+            table.setValueAt(spreadsheet.getCell(x, y).getInfo(), x, y);
+        for (int i = 0; i < row; i++) {
+            for (int j = 0; j < columns1; j++) {
+                if (i == table.getSelectedRow() && j == table.getSelectedColumn()) {
+                    table.setValueAt(spreadsheet.getCell(i, j).getInfo(), i, j);
+                    inputField.setText(spreadsheet.getCell(i, j).getInfo());
+                    continue;
+                }
+                data = spreadsheet.getCell(i, j).getEvaluation();
+                table.setValueAt(data, i, j);
+                table.getColumnModel().getColumn(j)
+                        .setCellRenderer(new ColumnColorRenderer(table.getBackground(), i));
+            }
+        }
+    }
+
     /**
      * The method resets the table (can be undone with UNDO button)
+     *
      * @return true if YES option was selected
      */
     private static boolean reset() {
@@ -298,8 +305,9 @@ Please enter amount of rows and columns\s
 
     /**
      * Load a file from the given path and set entries' information accordingly.
+     *
      * @return true if the load was successful
-     *         else return false
+     * else return false
      */
     private static boolean load() {
         int result = fileChooser.showOpenDialog(frame);
@@ -347,9 +355,10 @@ Please enter amount of rows and columns\s
      * write #.
      * Else replace an empty input with [-] sign.
      * Every cell's information is saves within [] brackets.
+     *
      * @param spreadsheet - spreadsheet to save
      * @return true if the save was successful
-     *         else return false
+     * else return false
      */
     private static boolean save(Table spreadsheet) {
         int result = fileChooser.showSaveDialog(frame);
@@ -444,11 +453,21 @@ Please enter amount of rows and columns\s
                 , boolean hasFocus, int row, int column) {
             Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             cell.setForeground(table.getForeground());
+            if (prevRow == -1 && prevCol == -1) {
+                prevRow = row;
+                prevCol = column;
+            }
             if (row == this.row)
                 cell.setBackground(backgroundColor);
-            else if (row == table.getSelectedRow() && column == table.getSelectedColumn())
+            else if (row == table.getSelectedRow() && column == table.getSelectedColumn()) {
                 cell.setBackground(Color.GREEN);
-            else
+                if (prevRow != row || prevCol != column) {
+                    prevRow = row;
+                    prevCol = column;
+                    externalCellSelection();
+                }
+
+            } else
                 cell.setBackground(table.getBackground());
             return cell;
         }
