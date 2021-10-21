@@ -169,13 +169,13 @@ Please enter amount of rows and columns\s
         select.addListSelectionListener(e -> {
             String data;
             int row = table.getRowCount();
-            int columns1 = table.getColumnCount();
+            int column = table.getColumnCount();
             int x = table.getSelectedRow();
             int y = table.getSelectedColumn();
             if (x >= 0 && y >= 0)
                 table.setValueAt(spreadsheet.getCell(x, y).getInfo(), x, y);
             for (int i = 0; i < row; i++) {
-                for (int j = 0; j < columns1; j++) {
+                for (int j = 0; j < column; j++) {
                     if (i == table.getSelectedRow() && j == table.getSelectedColumn()) {
                         table.setValueAt(spreadsheet.getCell(i, j).getInfo(), i, j);
                         inputField.setText(spreadsheet.getCell(i, j).getInfo());
