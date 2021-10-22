@@ -8,13 +8,25 @@ public class Table {
     private int columns;
     private Cell[][] spreadsheet;
     private String[][] evaluations;
-    private Map < Cell, Set < Cell >> references;
+    private Map<Cell, Set<Cell>> references;
     private Table prevTable;
     private Table savedTable;
 
+    public Set<Cell> getActiveCells() {
+        return activeCells;
+    }
+
+    public void setActiveCells(Set<Cell> activeCells) {
+        this.activeCells = activeCells;
+    }
+
+    private Set<Cell> activeCells;
+
+
     /**
      * The method creates a spreadsheet with users input of rows and columns.
-     * @param rows - rows amount
+     *
+     * @param rows    - rows amount
      * @param columns - columns amount
      */
     public Table(int rows, int columns) {
@@ -25,15 +37,16 @@ public class Table {
         for (int i = 0; i < rows; i++)
             for (int j = 0; j < columns; j++)
                 spreadsheet[i][j] = new Cell(this, i, j);
-        references = new HashMap < > ();
+        references = new HashMap<>();
         prevTable = null;
+        activeCells = new HashSet<>();
     }
 
-    public Map < Cell, Set < Cell >> getReferences() {
+    public Map<Cell, Set<Cell>> getReferences() {
         return references;
     }
 
-    public void setReferences(Map < Cell, Set < Cell >> references) {
+    public void setReferences(Map<Cell, Set<Cell>> references) {
         this.references = references;
     }
 
@@ -81,8 +94,9 @@ public class Table {
 
     /**
      * The method sets information to the specific cell.
-     * @param x - row index
-     * @param y - column index
+     *
+     * @param x     - row index
+     * @param y     - column index
      * @param input - cells information
      */
     public void setCell(int x, int y, String input) {
@@ -95,6 +109,7 @@ public class Table {
 
     /**
      * The method copies entries from the table.
+     *
      * @param table - table to copy
      * @return table with the same entries.
      */
@@ -104,12 +119,18 @@ public class Table {
             for (int j = 0; j < newTable.columns; j++) {
                 newTable.getSpreadsheet()[i][j].setInfo(table.getSpreadsheet()[i][j].getInfo());
                 newTable.getSpreadsheet()[i][j].setEvaluation(table.getSpreadsheet()[i][j].getEvaluation());
+                newTable.getSpreadsheet()[i][j].setActive(table.getSpreadsheet()[i][j].isActive());
                 newTable.getEvaluations()[i][j] = newTable.getSpreadsheet()[i][j].getEvaluation();
             }
         }
-        for (Cell key: table.getReferences().keySet()) {
+        for (Cell key : table.getReferences().keySet()) {
             newTable.getReferences().put(key, table.getReferences().get(key));
         }
+        Set<Cell> cells = table.getActiveCells();
+        for (Cell c : cells) {
+            newTable.getActiveCells().add(newTable.getCell(c.getX(), c.getY()));
+        }
+
         newTable.prevTable = table.prevTable;
         newTable.savedTable = table.savedTable;
         return newTable;

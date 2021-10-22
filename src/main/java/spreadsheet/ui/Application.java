@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
+import java.util.*;
 import java.util.List;
 
 @SuppressWarnings("unchecked")
@@ -32,6 +32,15 @@ public class Application {
     private static JTextField inputField;
     private static int prevRow = -1;
     private static int prevCol = -1;
+    private static boolean first = true;
+    private static boolean undo = false;
+
+    private static final int BOTTOM_PANEL_HEIGHT = 40;
+    private static final int FRAME_MINIMUM_SIZE = 500;
+    private static final int INPUT_FIELD_COLUMNS = 25;
+    private static final int CELL_WIDTH = 30;
+    private static final String REFERENCE_REGEX = "(([A-Z]+)(\\d+))";
+    private static final String DEFAULT_AMOUNT = "20";
 
     /**
      * Create the GUI and show it.  For thread safety,
@@ -69,10 +78,10 @@ Please enter amount of rows and columns\s
                     "Set rows and columns", JOptionPane.OK_CANCEL_OPTION);
             if (option == JOptionPane.OK_OPTION) {
                 if (rowsAmount.getText() == null || !rowsAmount.getText().matches("\\d+")) {
-                    rowsAmount.setText("20");
+                    rowsAmount.setText(DEFAULT_AMOUNT);
                 }
                 if (columnsAmount.getText() == null || !columnsAmount.getText().matches("\\d+")) {
-                    columnsAmount.setText("20");
+                    columnsAmount.setText(DEFAULT_AMOUNT);
                 }
                 spreadsheet = new Table(Integer.parseInt(rowsAmount.getText()), Integer.parseInt(columnsAmount.getText()));
             } else {
@@ -121,7 +130,7 @@ Please enter amount of rows and columns\s
 
         //Set row number header
         JList<String> rowHeader = new JList<>(rows);
-        rowHeader.setFixedCellWidth(30);
+        rowHeader.setFixedCellWidth(CELL_WIDTH);
         rowHeader.setFixedCellHeight(table.getRowHeight());
         rowHeader.setCellRenderer(new RowHeaderRenderer(table));
         sp.setRowHeaderView(rowHeader);
@@ -143,20 +152,37 @@ Please enter amount of rows and columns\s
             public void mouseReleased(MouseEvent e) {
                 super.mouseReleased(e);
                 String selected = inputField.getSelectedText();
-                if (selected != null && selected.matches("(([A-Z]+)(\\d+))")) {
-                    int xSelected = Cell.getX(selected);
-                    int ySelected = Cell.getY(selected);
-                    lastSelectedX = xSelected;
-                    lastSelectedY = ySelected;
-                    table.getColumnModel().getColumn(ySelected)
-                            .setCellRenderer(new ColumnColorRenderer(Color.YELLOW, xSelected));
+                if (lastSelectedX != -1 && lastSelectedY != -1) {
+                    table.getColumnModel().getColumn(lastSelectedY)
+                            .setCellRenderer(new ColumnColorRenderer(table.getBackground(), lastSelectedX));
                     table.updateUI();
-                } else {
-                    if (lastSelectedX != -1 && lastSelectedY != -1) {
-                        table.getColumnModel().getColumn(lastSelectedY)
-                                .setCellRenderer(new ColumnColorRenderer(table.getBackground(), lastSelectedX));
+                }
+                if (selected != null) {
+                    selected = selected.toUpperCase(Locale.ROOT);
+                    if (selected.matches(REFERENCE_REGEX)) {
+                        int xSelected = Cell.getX(selected);
+                        int ySelected = Cell.getY(selected);
+                        table.getColumnModel().getColumn(ySelected)
+                                .setCellRenderer(new ColumnColorRenderer(Color.YELLOW, xSelected));
+                        spreadsheet.getCell(xSelected, ySelected).getSpreadsheet().getActiveCells()
+                                .add(spreadsheet.getCell(xSelected, ySelected));
                         table.updateUI();
+                        lastSelectedX = xSelected;
+                        lastSelectedY = ySelected;
                     }
+                }
+            }
+        });
+        inputField.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                super.keyPressed(e);
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    String input = inputField.getText();
+                    int x = table.getSelectedRow();
+                    int y = table.getSelectedColumn();
+                    table.setValueAt(input, x, y);
+                    externalCellSelection();
                 }
             }
         });
@@ -178,7 +204,7 @@ Please enter amount of rows and columns\s
 
             if (x >= 0 && y >= 0) {
                 String data = (String) table.getValueAt(x, y);
-                if (spreadsheet.getCell(x, y).getInfo().matches("(.*)(([A-Z]+)(\\d+))(.*)") || spreadsheet.getCell(x, y).getInfo().startsWith("=")) {
+                if (spreadsheet.getCell(x, y).getInfo().startsWith("=")) {
                     if (!data.equals(spreadsheet.getCell(x, y).getInfo())
                             && !data.equals(spreadsheet.getCell(x, y).getEvaluation())) {
                         spreadsheet.setCell(x, y, data);
@@ -212,7 +238,10 @@ Please enter amount of rows and columns\s
                 frame.setVisible(false);
                 frame.dispose();
                 reload = true;
+                first = true;
                 createAndShowGUI();
+                spreadsheet.setPrevTable(null);
+                spreadsheet.setSavedTable(null);
             } else
                 JOptionPane.showMessageDialog(frame, "Load failed."
                         , "Alert", JOptionPane.WARNING_MESSAGE);
@@ -227,22 +256,28 @@ Please enter amount of rows and columns\s
                 spreadsheet = new Table(spreadsheet.getRows(), spreadsheet.getColumns());
                 spreadsheet.setSavedTable(temp.getSavedTable());
                 spreadsheet.setPrevTable(temp.getPrevTable());
+                undo = true;
+                externalCellSelection();
+                table.updateUI();
+                table.selectAll();
+                table.clearSelection();
             }
-            table.selectAll();
-            table.clearSelection();
         });
 
         //Undo button
         JButton undoButton = new JButton("undo");
         undoButton.addActionListener(e -> {
             if (spreadsheet.getSavedTable() != null) spreadsheet = spreadsheet.getSavedTable();
+            undo = true;
+            externalCellSelection();
+            table.updateUI();
             table.selectAll();
             table.clearSelection();
         });
 
         //Upper pane; for input text field, undo and reset buttons
         JPanel upperPanel = new JPanel();
-        inputField.setColumns(25);
+        inputField.setColumns(INPUT_FIELD_COLUMNS);
         upperPanel.add(inputField, BorderLayout.WEST);
         upperPanel.add(undoButton);
         upperPanel.add(resetButton);
@@ -253,13 +288,13 @@ Please enter amount of rows and columns\s
         bottomPanel.add(saveButton);
         bottomPanel.add(loadButton);
         bottomPanel.setBackground(Color.WHITE);
-        bottomPanel.setPreferredSize(new Dimension(table.getWidth(), 40));
+        bottomPanel.setPreferredSize(new Dimension(table.getWidth(), BOTTOM_PANEL_HEIGHT));
 
         frame.add(upperPanel, BorderLayout.NORTH);
         frame.add(sp, BorderLayout.CENTER);
         frame.add(bottomPanel, BorderLayout.SOUTH);
-        frame.setMinimumSize(new Dimension(500, 500));
-//        fileChooser.setMaximumSize(new Dimension(fileChooser.getWidth() - 100, fileChooser.getHeight()));
+        frame.setMinimumSize(new Dimension(FRAME_MINIMUM_SIZE, FRAME_MINIMUM_SIZE));
+
         //Display the window.
         frame.pack();
         frame.setVisible(true);
@@ -271,20 +306,58 @@ Please enter amount of rows and columns\s
         int columns1 = table.getColumnCount();
         int x = table.getSelectedRow();
         int y = table.getSelectedColumn();
-        if (x >= 0 && y >= 0)
-            table.setValueAt(spreadsheet.getCell(x, y).getInfo(), x, y);
-        for (int i = 0; i < row; i++) {
-            for (int j = 0; j < columns1; j++) {
-                if (i == table.getSelectedRow() && j == table.getSelectedColumn()) {
-                    table.setValueAt(spreadsheet.getCell(i, j).getInfo(), i, j);
-                    inputField.setText(spreadsheet.getCell(i, j).getInfo());
-                    continue;
+        if (first || undo) {
+            table.setCellSelectionEnabled(false);
+            for (int i = 0; i < row; i++) {
+                for (int j = 0; j < columns1; j++) {
+                    if (undo) {
+                        if (i == table.getSelectedRow() && j == table.getSelectedColumn()) {
+                            table.setValueAt(spreadsheet.getCell(i, j).getInfo(), i, j);
+                            inputField.setText(spreadsheet.getCell(i, j).getInfo());
+                            continue;
+                        }
+                        data = spreadsheet.getCell(i, j).getEvaluation();
+                        table.setValueAt(data, i, j);
+                    }
+                    table.getColumnModel().getColumn(j)
+                            .setCellRenderer(new ColumnColorRenderer(table.getBackground(), i));
                 }
-                data = spreadsheet.getCell(i, j).getEvaluation();
-                table.setValueAt(data, i, j);
-                table.getColumnModel().getColumn(j)
-                        .setCellRenderer(new ColumnColorRenderer(table.getBackground(), i));
             }
+            if (reload) {
+                spreadsheet.setPrevTable(null);
+                spreadsheet.setSavedTable(null);
+            }
+            undo = false;
+            first = false;
+            reload = false;
+            table.setCellSelectionEnabled(true);
+        }
+        if (prevCol != -1 && prevRow != -1 && prevRow != x && prevCol != y) {
+            table.getColumnModel().getColumn(prevCol)
+                    .setCellRenderer(new ColumnColorRenderer(table.getBackground(), prevRow));
+        }
+
+        if (x >= 0 && y >= 0) {
+            table.setValueAt(spreadsheet.getCell(x, y).getInfo(), x, y);
+            inputField.setText(spreadsheet.getCell(x, y).getInfo());
+            table.getColumnModel().getColumn(y)
+                    .setCellRenderer(new ColumnColorRenderer(Color.GREEN, x));
+            if (lastSelectedX != -1 && lastSelectedY != -1)
+                table.getColumnModel().getColumn(lastSelectedY)
+                        .setCellRenderer(new ColumnColorRenderer(table.getBackground(), lastSelectedX));
+        }
+
+        Set<Cell> cells = spreadsheet.getActiveCells();
+        Cell[] cells1 = new Cell[cells.size()];
+        int i = 0;
+        for (Cell c : cells) cells1[i++] = c;
+        for (Cell cell : cells1) {
+            if (cell.getX() == x && cell.getY() == y) continue;
+            data = cell.getEvaluation();
+            table.setValueAt(data, cell.getX(), cell.getY());
+            table.getColumnModel().getColumn(cell.getY())
+                    .setCellRenderer(new ColumnColorRenderer(table.getBackground(), cell.getX()));
+
         }
     }
 
@@ -454,21 +527,26 @@ Please enter amount of rows and columns\s
             Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             cell.setForeground(table.getForeground());
             if (prevRow == -1 && prevCol == -1) {
-                prevRow = row;
-                prevCol = column;
+                prevRow = table.getSelectedRow();
+                prevCol = table.getSelectedColumn();
             }
-            if (row == this.row)
+            if (row == this.row && backgroundColor.equals(Color.YELLOW)) {
                 cell.setBackground(backgroundColor);
-            else if (row == table.getSelectedRow() && column == table.getSelectedColumn()) {
+                if (isSelected && (prevRow != table.getSelectedRow() || prevCol != table.getSelectedColumn())) {
+                    prevRow = table.getSelectedRow();
+                    prevCol = table.getSelectedColumn();
+                    externalCellSelection();
+                }
+            } else if (row == table.getSelectedRow() && column == table.getSelectedColumn()) {
                 cell.setBackground(Color.GREEN);
                 if (prevRow != row || prevCol != column) {
                     prevRow = row;
                     prevCol = column;
                     externalCellSelection();
                 }
-
             } else
                 cell.setBackground(table.getBackground());
+
             return cell;
         }
     }

@@ -25,6 +25,16 @@ public class Cell {
     private boolean min;
     private boolean max;
 
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
+    }
+
+    private boolean isActive;
+
     public Cell(Table spreadsheet, int x, int y) {
         info = null;
         evaluation = null;
@@ -36,10 +46,10 @@ public class Cell {
         avg = false;
         min = false;
         max = false;
+        isActive = false;
     }
 
     /**
-     *
      * @param location - location as string i.e. A1
      * @return int X position
      */
@@ -54,7 +64,6 @@ public class Cell {
     }
 
     /**
-     *
      * @param location - location as string i.e. A1
      * @return int Y location
      */
@@ -114,7 +123,7 @@ public class Cell {
      * or a reference to another cell
      * or an expression containing a reference to another cell
      * or a math expression.
-     *
+     * <p>
      * The method sets an evaluation of the cell.
      */
     public void handleInfo() {
@@ -126,19 +135,19 @@ public class Cell {
             if (temp.startsWith("SUM")) {
                 sum = true;
 
-                function ();
+                function();
             } else if (temp.startsWith("AVERAGE")) {
                 avg = true;
 
-                function ();
+                function();
             } else if (temp.startsWith("MIN")) {
                 min = true;
 
-                function ();
+                function();
             } else if (temp.startsWith("MAX")) {
                 max = true;
 
-                function ();
+                function();
             } else if (temp.matches("(([A-Z]+)(\\d+))")) {
                 handleRef();
             } else if (temp.matches("(.*)(([A-Z]+)(\\d+))(.*)")) {
@@ -154,12 +163,12 @@ public class Cell {
      * and handles an input accordingly.
      */
     private void
-    function () {
-        List < String > evaluations = new LinkedList < > ();
-        List < Double > numericValues = new LinkedList < > ();
+    function() {
+        List<String> evaluations = new LinkedList<>();
+        List<Double> numericValues = new LinkedList<>();
         double result = 0.0;
         String[] references_split = temp.split(";");
-        for (String s: references_split) {
+        for (String s : references_split) {
             temp = s;
             String[] edges = parseRef();
             if (temp.equals(REFERENCE_ERROR)) return;
@@ -189,7 +198,7 @@ public class Cell {
             }
         }
 
-        for (String evaluation: evaluations) {
+        for (String evaluation : evaluations) {
             if (evaluation.equals(REFERENCE_ERROR)) {
                 compromiseCells(this);
                 temp = REFERENCE_ERROR;
@@ -233,6 +242,7 @@ public class Cell {
 
     /**
      * The method parses all the mentioned references in the temp variable.
+     *
      * @return String[] matches of all the references.
      */
     private String[] parseRef() {
@@ -242,7 +252,7 @@ public class Cell {
                 .results()
                 .map(MatchResult::group)
                 .toArray(String[]::new);
-        for (String match: matches) {
+        for (String match : matches) {
             int x = getX(match);
             int y = getY(match);
             if (x >= spreadsheet.getRows() || y >= spreadsheet.getColumns())
@@ -256,11 +266,12 @@ public class Cell {
     /**
      * The method adds references mentioned in the formula
      * to the referee's set of references.
+     *
      * @param referee - the cell to which add reference to the current cell
      */
     private void addReferences(Cell referee) {
         if (!spreadsheet.getReferences().containsKey(referee))
-            spreadsheet.getReferences().put(referee, new HashSet < > ());
+            spreadsheet.getReferences().put(referee, new HashSet<>());
         if (spreadsheet.getReferences().containsKey(this) && (referee.equals(this) || spreadsheet.getReferences()
                 .get(this).contains(referee)))
             compromiseCells(this);
@@ -270,11 +281,12 @@ public class Cell {
     /**
      * The method compromises cell's references
      * when an Error Message occurs.
+     *
      * @param root - the cell from which start to compromise cells
      */
     private void compromiseCells(Cell root) {
         if (!spreadsheet.getReferences().containsKey(root)) return;
-        for (Cell reference: spreadsheet.getReferences().get(root)) {
+        for (Cell reference : spreadsheet.getReferences().get(root)) {
             reference.setEvaluation(REFERENCE_ERROR);
         }
     }
@@ -325,6 +337,7 @@ public class Cell {
      * The method handles an input from user,
      * updates connected cells
      * and sets its evaluation in the spreadsheet.table.Table's evaluation array.
+     *
      * @param info - a user's input.
      */
     public void setInfo(String info) {
@@ -332,17 +345,25 @@ public class Cell {
         handleInfo();
         updateCells(this);
         spreadsheet.getEvaluations()[x][y] = evaluation;
+        synchronized (this) {
+            isActive = (this.info != null && !this.info.equals("")) || (this.evaluation != null && !this.evaluation.equals(""));
+            if (this.isActive) this.spreadsheet.getActiveCells().add(this);
+            else this.spreadsheet.getActiveCells().remove(this);
+        }
     }
 
     /**
      * The method updates connected cells when a cell's information
      * and therefore its evaluation changes.
+     *
      * @param root - from which cell start update cells.
      */
     private void updateCells(Cell root) {
+        this.spreadsheet.getActiveCells().add(root);
         if (!spreadsheet.getReferences().containsKey(root)) return;
-        for (Cell reference: spreadsheet.getReferences().get(root)) {
+        for (Cell reference : spreadsheet.getReferences().get(root)) {
             reference.handleInfo();
+            this.spreadsheet.getActiveCells().add(reference);
         }
     }
 }
