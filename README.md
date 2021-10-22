@@ -47,4 +47,4 @@ Clone repository and run a Shmexel_Spreadsheet-1.0.jar file.
 
 ### Footnotes
 1. <span id="f1"></span> Expression is an equals sign, followed by numbers, references and allowed operators, i.e. =2+2 or =A1*4.
-2. <span id="f2"></span> Reference is a latin letter, followed by number.
+2. <span id="f2"></span> Reference is latin letter(s), followed by number.
